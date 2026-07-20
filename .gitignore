@@ -2,3 +2,15 @@
 node_modules/
 dist/
 *.log
+
+# ── Private data: must NEVER enter Git ─────────────────────────────
+# Real family data lives only on the device / in local folders below.
+private-local-data/
+backups/
+migration-input/
+exports/
+# App export files (real backups) — the app names them like this:
+math-trail-backup-*.json
+math-world-backup-*.json
+*.real.json
+*.private.json
