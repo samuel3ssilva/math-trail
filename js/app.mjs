@@ -5,8 +5,8 @@ import { ACTIVITIES, CAT_LABEL, COMPOSITION_IDS, MINS, MILESTONES, WINDOWS } fro
 import { defaultState, getLevel, applyLog, replayState, rewardObservation,
          evaluateTemporalRules, milestoneProgress, currentFocus, weightedPick,
          hashStr, mulberry32, scoreActivities } from './engine.mjs';
-import { localDateKey, sessionDayKey, addDays, fmtElapsed, clampSessionMinutes } from './time.mjs';
-import { makeRepo, migrateStore, importBackup, buildExport, SCHEMA_VERSION } from './storage.mjs';
+import { localDateKey, sessionDayKey, addDays, fmtElapsed, finishSession } from './time.mjs';
+import { makeRepo, migrateStore, importBackup, buildExport, appendLog, SCHEMA_VERSION } from './storage.mjs';
 import { I18N } from './i18n.mjs';
 import { generateDemoData, DEMO_PROFILE } from './demo.mjs';
 
@@ -32,7 +32,7 @@ function applyLang(){
   const bp=document.getElementById('lang-pt'), be=document.getElementById('lang-en');
   if(bp&&be){ bp.classList.toggle('on',LANG==='pt'); be.classList.toggle('on',LANG==='en'); }
   buildActivitySelect(); buildPlanPickers(); renderHeader(); renderBanners(); renderWeekCard();
-  renderLogList(); renderAnalytics(); renderSessionBar();
+  renderLogList(); renderAnalytics(); renderSessionBar(); renderPendingNote();
   if(editingId!==null) document.getElementById('saveBtn').textContent=t('btn_update');
 }
 
@@ -192,11 +192,47 @@ function viewPlan(winKey){
 // ─────────────────────────────────────────────────────
 // ACTIVE SESSION — start, live timer, finish into the log
 // ─────────────────────────────────────────────────────
-let sessTick=null, pendingMins=null;
+let sessTick=null;
 const getActive=()=>repo.getActive();
 const setActive=(a)=>repo.setActive(a);
 
+// ── pending session: finished but not yet saved (persisted, PR review P0) ──
+function renderPendingNote(){
+  const pn=document.getElementById('pendingNote');
+  if(!pn) return;
+  const p=repo.getPending();
+  if(!p){ pn.style.display='none'; pn.textContent=''; return; }
+  pn.textContent='';
+  const msg=document.createElement('span');
+  msg.textContent=`${t('pending_note')} (${p.mins||1} ${t('min_suffix')}) — `;
+  const btn=document.createElement('button');
+  btn.type='button';
+  btn.textContent=t('pending_discard');
+  btn.addEventListener('click', discardPending);
+  pn.append(msg, btn);
+  pn.style.display='block';
+}
+function discardPending(){
+  if(!confirm(t('pending_discard_confirm'))) return;
+  repo.setPending(null);
+  renderPendingNote(); buildPlanPickers();
+}
+function restorePendingIntoForm(){
+  const p=repo.getPending(); if(!p) return false;
+  const winSel=document.getElementById('log-window');
+  if(winSel && ['morning','afternoon','bedtime'].includes(p.window)) winSel.value=p.window;
+  const actSel=document.getElementById('log-activity');
+  if(actSel && ACTIVITIES[p.activity]) actSel.value=p.activity;
+  renderPendingNote();
+  return true;
+}
+
 function startSession(winKey){
+  if(repo.getPending()){
+    // A finished session is waiting — resolve it before starting another.
+    restorePendingIntoForm(); showTab('log'); showToast(t('sess_pending'));
+    return;
+  }
   if(getActive()){ showToast(t('sess_busy')); return; }
   const plan=getDailyPlan();
   const actId=plan[winKey]; if(!actId) return;
@@ -228,20 +264,17 @@ function renderSessionBar(){
 }
 function endSession(){
   const a=getActive(); if(!a) return;
-  pendingMins=clampSessionMinutes(a.startedAt, Date.now()); // audit F3
-
+  // Persist the finished session BEFORE clearing the active one — a reload,
+  // OS kill or SW update between here and "save" must not lose the capture.
+  repo.setPending(finishSession(a, Date.now()));
   setActive(null); renderSessionBar(); buildPlanPickers();
-  document.getElementById('log-window').value=a.window;
-  document.getElementById('log-activity').value=a.activity;
-  // The session is over but not yet recorded — keep that visible until saved (audit A4).
-  const pn=document.getElementById('pendingNote');
-  if(pn){ pn.style.display='block'; pn.textContent=t('pending_note'); }
+  restorePendingIntoForm();
   showTab('log');
   showToast(t('toast_prefill'));
 }
 function discardSession(){
   if(!confirm(t('sess_discard_confirm'))) return;
-  setActive(null); pendingMins=null; renderSessionBar(); buildPlanPickers();
+  setActive(null); renderSessionBar(); buildPlanPickers();
 }
 
 // ─────────────────────────────────────────────────────
@@ -323,8 +356,9 @@ function saveLog(e){
     reward:document.querySelector('input[name="reward"]:checked')?.value||'intrinsic',
     notes:document.getElementById('log-notes').value.trim()
   };
-  if(pendingMins!==null && editingId===null){ entry.mins=pendingMins; pendingMins=null; }
-  const pn=document.getElementById('pendingNote'); if(pn) pn.style.display='none';
+  // Only a NEW entry may consume the pending session (editing never does).
+  const pending = editingId===null ? repo.getPending() : null;
+  if(pending && typeof pending.mins==='number') entry.mins=pending.mins;
   const state=getState();
   const prevLvl=getLevel(state, entry.activity);
 
@@ -338,7 +372,11 @@ function saveLog(e){
   } else {
     entry.id=Date.now(); entry.timestamp=new Date().toISOString();
     const ns=applyLog(state, entry, logs);
-    logs.push(entry); saveLogs(logs); saveState(ns);
+    // appendLog clears the pending session only after a successful write;
+    // on failure it restores the previous logs and keeps the pending session.
+    const res=appendLog(localStorage, entry, { nextState: ns });
+    if(!res.ok){ showToast(t('save_fail')); return; }
+    renderPendingNote();
     const newLvl=getLevel(ns, entry.activity);
     if(newLvl>prevLvl) showToast(t('toast_lvlup').replace('{a}',ACTIVITIES[entry.activity].name).replace('{l}',newLvl));
     else if(newLvl<prevLvl) showToast(t('toast_lvldown').replace('{l}',newLvl));
@@ -757,6 +795,10 @@ if(new URLSearchParams(location.search).get('demo')==='1' && !getLogs().length){
   setTimeout(()=>showToast(t('demo_on')), 400);
 }
 applyLang();
+
+// A finished-but-unsaved session survives reloads, PWA restarts and SW
+// updates — surface it immediately so it gets saved or discarded on purpose.
+if(restorePendingIntoForm()) showTab('log');
 
 // Inline onclick handlers live in index.html — expose the API they need.
 Object.assign(window, { setLang, showTab, openSettings, closeSettings, saveSettings,

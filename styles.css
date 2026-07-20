@@ -253,6 +253,7 @@ select:focus,input:focus{border-color:var(--brand)}
 .skiplink:focus{left:12px}
 .planblock .pwhy{display:block;font-size:12px;font-weight:600;color:var(--brand-deep);margin-top:4px}
 .pendnote{display:none;background:var(--brand-bg);border:1px solid var(--brand-line);color:var(--brand-deep);font-size:13px;font-weight:700;border-radius:var(--r-sm);padding:10px 12px;margin-bottom:6px}
+.pendnote button{color:var(--brand-deep);font-weight:800;text-decoration:underline;font-size:13px;min-height:44px;padding:0 4px}
 .sysdetails summary{list-style:none;cursor:pointer;display:flex;align-items:center;min-height:44px;gap:8px}
 .sysdetails summary::-webkit-details-marker{display:none}
 .sysdetails summary::after{content:'▾';margin-left:auto;color:var(--ink-faint);transition:transform .2s}

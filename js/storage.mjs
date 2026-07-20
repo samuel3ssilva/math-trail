@@ -2,6 +2,12 @@
 // All functions take an injected `store` (localStorage-compatible: getItem/
 // setItem/removeItem) so every path is testable with a plain in-memory map.
 // Domain code (engine.mjs) never touches this module.
+//
+// Import policy (documented, tested): payloads are validated FIRST and then
+// NORMALIZED to an allowlist of fields — unknown/extra properties never reach
+// the store. Values that fail the contract reject the whole import.
+
+import { ACTIVITIES } from './activities.mjs';
 
 export const SCHEMA_VERSION = 2;
 
@@ -14,7 +20,10 @@ export const KEYS = {
   lang: 'mathtrail_lang',
   rest: 'mathtrail_restdays',
   schema: 'mathtrail_schema',
-  preImportSnapshot: 'mathtrail_snapshot_pre_import'
+  preImportSnapshot: 'mathtrail_snapshot_pre_import',
+  // A finished-but-unsaved session. Only removed after the log is stored
+  // successfully or the parent explicitly discards it (PR review P0).
+  pending: 'mathtrail_pending_session'
 };
 
 const WINDOWS_SET = new Set(['morning', 'afternoon', 'bedtime']);
@@ -22,6 +31,18 @@ const COMPLETIONS = new Set(['full', 'partial', 'refused']);
 const ENGAGEMENTS = new Set(['excited', 'neutral', 'resisted']);
 const EASES = new Set(['too_easy', 'just_right', 'too_hard']);
 const REWARDS = new Set(['intrinsic', 'connection', 'extrinsic']);
+const CHAPTERS = new Set([0, 1, 4, 5, 6, 7]);
+
+export const NOTES_MAX_LENGTH = 500;
+export const NAME_MAX_LENGTH = 60;
+export const MINS_MAX = 1440; // storage accepts up to a day; the UI clamps far lower
+
+/** Safe id: the number the app generates, or a short [A-Za-z0-9_-] string. */
+function isSafeId(id){
+  if (typeof id === 'number') return Number.isFinite(id);
+  if (typeof id === 'string') return /^[A-Za-z0-9_-]{1,64}$/.test(id);
+  return false;
+}
 
 /**
  * Validate one session log against the v1/v2 contract.
@@ -29,17 +50,55 @@ const REWARDS = new Set(['intrinsic', 'connection', 'extrinsic']);
  */
 export function validateLog(l){
   const problems = [];
-  if (!l || typeof l !== 'object') return ['not an object'];
-  if (l.id === undefined || l.id === null) problems.push('missing id');
-  if (typeof l.timestamp !== 'string' || Number.isNaN(Date.parse(l.timestamp))) problems.push('invalid timestamp');
+  if (!l || typeof l !== 'object' || Array.isArray(l)) return ['not an object'];
+  if (!isSafeId(l.id)) problems.push('invalid id');
+  if (typeof l.timestamp !== 'string' || !Number.isFinite(Date.parse(l.timestamp))) problems.push('invalid timestamp');
   if (!WINDOWS_SET.has(l.window)) problems.push(`invalid window: ${l.window}`);
-  if (typeof l.activity !== 'string' || !l.activity) problems.push('missing activity');
+  if (typeof l.activity !== 'string' || !(l.activity in ACTIVITIES)) problems.push('unknown activity');
   if (!COMPLETIONS.has(l.completion)) problems.push(`invalid completion: ${l.completion}`);
   if (!ENGAGEMENTS.has(l.engagement)) problems.push(`invalid engagement: ${l.engagement}`);
   if (!EASES.has(l.ease)) problems.push(`invalid ease: ${l.ease}`);
   if (!REWARDS.has(l.reward)) problems.push(`invalid reward: ${l.reward}`);
-  if (l.mins !== undefined && (typeof l.mins !== 'number' || l.mins < 0)) problems.push('invalid mins');
+  if (l.mins !== undefined && (typeof l.mins !== 'number' || !Number.isFinite(l.mins) || l.mins < 0 || l.mins > MINS_MAX)) problems.push('invalid mins');
+  if (l.notes !== undefined && (typeof l.notes !== 'string' || l.notes.length > NOTES_MAX_LENGTH)) problems.push('invalid notes');
   return problems;
+}
+
+/** Allowlist normalization: only contract fields survive an import. */
+export function normalizeLog(l){
+  const out = {
+    id: l.id, timestamp: l.timestamp, window: l.window, activity: l.activity,
+    completion: l.completion, engagement: l.engagement, ease: l.ease, reward: l.reward
+  };
+  if (typeof l.mins === 'number') out.mins = l.mins;
+  if (typeof l.notes === 'string' && l.notes) out.notes = l.notes;
+  return out;
+}
+
+/**
+ * Validate + normalize an imported profile. Textual fields must be plain
+ * strings within limits; anything else rejects. Extra fields are dropped.
+ * @returns {{ok:true, profile:object}|{ok:false, reason:string}}
+ */
+export function validateProfile(p){
+  if (p === undefined || p === null) return { ok:true, profile:undefined };
+  if (typeof p !== 'object' || Array.isArray(p)) return { ok:false, reason:'profile_not_object' };
+  const out = {};
+  if (p.name !== undefined){
+    if (typeof p.name !== 'string' || p.name.length > NAME_MAX_LENGTH) return { ok:false, reason:'invalid_profile_name' };
+    out.name = p.name;
+  }
+  if (p.birth !== undefined){
+    if (typeof p.birth !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(p.birth)) return { ok:false, reason:'invalid_profile_birth' };
+    const year = Number(p.birth.slice(0, 4));
+    if (year < 1990 || year > 2100) return { ok:false, reason:'implausible_profile_birth' };
+    out.birth = p.birth;
+  }
+  if (p.chapter !== undefined){
+    if (!CHAPTERS.has(Number(p.chapter))) return { ok:false, reason:'invalid_profile_chapter' };
+    out.chapter = Number(p.chapter);
+  }
+  return { ok:true, profile: out };
 }
 
 /**
@@ -56,7 +115,9 @@ export function validateBackup(data){
   if (!Array.isArray(data.logs)) return { ok:false, reason:'missing_logs' };
   const bad = data.logs.map((l,i)=>({ i, problems: validateLog(l) })).filter(x=>x.problems.length);
   if (bad.length) return { ok:false, reason:'invalid_logs', details: bad.slice(0,5) };
-  return { ok:true, version, logs:data.logs, profile:data.profile };
+  const prof = validateProfile(data.profile);
+  if (!prof.ok) return prof;
+  return { ok:true, version, logs: data.logs.map(normalizeLog), profile: prof.profile };
 }
 
 function readJSON(store, key, fallback){
@@ -82,6 +143,8 @@ export function makeRepo(store){
     savePlan(p){ store.setItem(KEYS.plan, JSON.stringify(p)); },
     getActive(){ return readJSON(store, KEYS.active, null); },
     setActive(a){ a ? store.setItem(KEYS.active, JSON.stringify(a)) : store.removeItem(KEYS.active); },
+    getPending(){ return readJSON(store, KEYS.pending, null); },
+    setPending(p){ p ? store.setItem(KEYS.pending, JSON.stringify(p)) : store.removeItem(KEYS.pending); },
     getRestDays(){ const v = readJSON(store, KEYS.rest, []); return Array.isArray(v) ? v : []; },
     saveRestDays(days){ store.setItem(KEYS.rest, JSON.stringify(days)); },
     getLang(){ return store.getItem(KEYS.lang) || null; },
@@ -91,6 +154,9 @@ export function makeRepo(store){
 
 /**
  * Build an export payload (always current schema version).
+ * Pending-session policy (documented): a finished-but-unsaved session IS
+ * included in the export (`pendingSession`) so no capture is ever lost;
+ * imports never touch the device's own pending session (see importBackup).
  */
 export function buildExport(repo, { now, appId = 'math-trail' }){
   return {
@@ -99,8 +165,35 @@ export function buildExport(repo, { now, appId = 'math-trail' }){
     exportedAt: now.toISOString(),
     profile: repo.getProfile({}),
     state: repo.getStateRaw(),
-    logs: repo.getLogs()
+    logs: repo.getLogs(),
+    pendingSession: repo.getPending() || undefined
   };
+}
+
+/**
+ * Append one freshly saved session log — the ONLY path that may consume the
+ * pending session, and only after the write succeeds. On failure the previous
+ * logs value and the pending session are both preserved.
+ *
+ * @param {Storage} store
+ * @param {object} entry the validated log entry to append
+ * @param {{nextState:object}} opts precomputed adaptive state after this log
+ * @returns {{ok:true}|{ok:false, reason:'write_failed'}}
+ */
+export function appendLog(store, entry, { nextState }){
+  const repo = makeRepo(store);
+  const before = store.getItem(KEYS.logs);
+  const logs = repo.getLogs();
+  logs.push(entry);
+  try {
+    repo.saveLogs(logs);
+    repo.saveState(nextState);
+    store.removeItem(KEYS.pending); // consumed only after a successful save
+    return { ok:true };
+  } catch (err) {
+    try { before === null ? store.removeItem(KEYS.logs) : store.setItem(KEYS.logs, before); } catch {}
+    return { ok:false, reason:'write_failed' };
+  }
 }
 
 /**
@@ -109,6 +202,9 @@ export function buildExport(repo, { now, appId = 'math-trail' }){
  *   2. snapshot current data to KEYS.preImportSnapshot;
  *   3. write new data; on ANY failure, restore the snapshot.
  * `replay` is injected (engine.replayState) to keep this module engine-free.
+ * Pending-session policy: an import replaces logs/profile/state but NEVER
+ * touches this device's pending session — a capture waiting to be saved is
+ * not part of the backup being restored and must not be silently discarded.
  *
  * @returns {{ok:true, imported:number}
  *          |{ok:false, reason:string, restored?:boolean}}

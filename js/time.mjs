@@ -39,6 +39,21 @@ export function clampSessionMinutes(startIso, endMs, maxMins = 120){
   return Math.min(maxMins, Math.max(1, Math.round((endMs - new Date(startIso).getTime()) / 60000)));
 }
 
+/**
+ * Turn an active session into a pending (finished-but-unsaved) session record.
+ * Pure: the end instant is injected. Works across local midnight — the log's
+ * own timestamps decide day grouping later, not this function.
+ */
+export function finishSession(active, endMs, maxMins = 120){
+  return {
+    window: active.window,
+    activity: active.activity,
+    startedAt: active.startedAt,
+    endedAt: new Date(endMs).toISOString(),
+    mins: clampSessionMinutes(active.startedAt, endMs, maxMins)
+  };
+}
+
 /** mm:ss elapsed between two instants (for the session timer display). */
 export function fmtElapsed(startIso, now = new Date()){
   const s = Math.max(0, Math.floor((now - new Date(startIso)) / 1000));
