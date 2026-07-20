@@ -8,6 +8,7 @@
 // the store. Values that fail the contract reject the whole import.
 
 import { ACTIVITIES } from './activities.mjs';
+import { reconcilePendingSession } from './session.mjs';
 
 export const SCHEMA_VERSION = 2;
 
@@ -217,11 +218,19 @@ export function appendLog(store, entry, { nextState }){
  *   2. snapshot current data to KEYS.preImportSnapshot;
  *   3. write new data; on ANY failure, restore the snapshot.
  * `replay` is injected (engine.replayState) to keep this module engine-free.
- * Pending-session policy: an import replaces logs/profile/state but NEVER
- * touches this device's pending session — a capture waiting to be saved is
- * not part of the backup being restored and must not be silently discarded.
  *
- * @returns {{ok:true, imported:number}
+ * Pending-session policy (PR review P0-2). Exports carry `pendingSession`, so
+ * imports must say what happens to it — silently dropping it loses a capture:
+ *   - backup has none                     → nothing changes;
+ *   - backup has one, device has none     → it is restored;
+ *   - backup has one, device has one too  → the DEVICE's copy is kept and the
+ *     import reports the conflict, because the unsaved capture in front of the
+ *     parent is not automatically less current than the one in the file;
+ *   - backup's copy is malformed          → reported, never written.
+ * The outcome is always returned in `pending` so the caller can tell the
+ * parent what happened.
+ *
+ * @returns {{ok:true, imported:number, pending:{action:string, reason?:string}}
  *          |{ok:false, reason:string, restored?:boolean}}
  */
 export function importBackup(store, data, { replay }){
@@ -229,9 +238,12 @@ export function importBackup(store, data, { replay }){
   if (!check.ok) return check;
 
   const repo = makeRepo(store);
+  const reconciled = reconcilePendingSession(data.pendingSession, repo.getPending());
+
   const snapshot = {
     logs: store.getItem(KEYS.logs), state: store.getItem(KEYS.state),
-    profile: store.getItem(KEYS.profile), schema: store.getItem(KEYS.schema)
+    profile: store.getItem(KEYS.profile), schema: store.getItem(KEYS.schema),
+    pending: store.getItem(KEYS.pending)
   };
   store.setItem(KEYS.preImportSnapshot, JSON.stringify(snapshot));
 
@@ -240,9 +252,14 @@ export function importBackup(store, data, { replay }){
     if (check.profile) repo.saveProfile(check.profile);
     repo.saveState(replay(check.logs));
     store.setItem(KEYS.schema, String(SCHEMA_VERSION));
-    return { ok:true, imported: check.logs.length };
+    // Only the 'restore' branch writes a pending session; a conflict keeps the
+    // device's copy untouched and is reported back to the caller.
+    if (reconciled.action === 'restore') repo.setPending(reconciled.pending);
+    return { ok:true, imported: check.logs.length,
+             pending: { action: reconciled.action, reason: reconciled.reason } };
   } catch (err) {
-    for (const [k, key] of [['logs',KEYS.logs],['state',KEYS.state],['profile',KEYS.profile],['schema',KEYS.schema]]){
+    for (const [k, key] of [['logs',KEYS.logs],['state',KEYS.state],['profile',KEYS.profile],
+                            ['schema',KEYS.schema],['pending',KEYS.pending]]){
       snapshot[k] === null || snapshot[k] === undefined ? store.removeItem(key) : store.setItem(key, snapshot[k]);
     }
     return { ok:false, reason:'write_failed', restored:true };

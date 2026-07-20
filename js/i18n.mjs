@@ -102,7 +102,10 @@ btn_rest:'Not a good moment today',rest_done:'Noted — rest is part of learning
 rest_chip:'rest day',
 imp_invalid:'This file is not a valid backup (missing or invalid fields). Nothing was changed.',
 imp_future:'This backup comes from a newer version of the app. Update the app first. Nothing was changed.',
-imp_fail:'Import failed — your previous data was restored automatically.'
+imp_fail:'Import failed — your previous data was restored automatically.',
+imp_pending_restored:'The backup also contained a session that was never saved. It is waiting on the Log tab.',
+imp_pending_conflict:'The backup also contained an unsaved session. Yours was kept — save or discard it first, then import again if you want the other one.',
+imp_pending_invalid:'The backup contained an unsaved session in an unreadable format. It was not applied; everything else was imported.'
 },
 pt:{
 tab_plan:'Plano',tab_log:'Registrar',tab_history:'Histórico',tab_stats:'Progresso',
@@ -205,6 +208,9 @@ btn_rest:'Hoje não é um bom momento',rest_done:'Anotado — descansar também 
 rest_chip:'dia de pausa',
 imp_invalid:'Este arquivo não é um backup válido (campos ausentes ou inválidos). Nada foi alterado.',
 imp_future:'Este backup vem de uma versão mais nova do app. Atualize o app primeiro. Nada foi alterado.',
-imp_fail:'A importação falhou — seus dados anteriores foram restaurados automaticamente.'
+imp_fail:'A importação falhou — seus dados anteriores foram restaurados automaticamente.',
+imp_pending_restored:'O backup também trazia uma sessão que nunca foi salva. Ela está esperando na aba Registrar.',
+imp_pending_conflict:'O backup também trazia uma sessão não salva. A sua foi mantida — salve ou descarte a sua primeiro e importe de novo se quiser a outra.',
+imp_pending_invalid:'O backup trazia uma sessão não salva em formato ilegível. Ela não foi aplicada; todo o resto foi importado.'
 }
 };

@@ -205,7 +205,7 @@ test('starting a new session is the app-side guard: pending is visible to check 
 
 // ── export / import policy (documented) ───────────────────────────────
 
-test('exports include the pending session; imports never touch it', () => {
+test('exports include the pending session; a backup without one leaves the device copy alone', () => {
   const store = memStore();
   const repo = makeRepo(store);
   const pending = finishSession(ACTIVE, Date.parse('2026-07-20T22:37:00.000Z'));
@@ -216,5 +216,86 @@ test('exports include the pending session; imports never touch it', () => {
 
   const res = importBackup(store, { schemaVersion: 2, logs: [validEntry()] }, { replay: replayState });
   assert.equal(res.ok, true);
+  assert.equal(res.pending.action, 'none');
   assert.deepEqual(repo.getPending(), pending, 'import replaced logs but preserved the device pending session');
+});
+
+// ── a pending session travelling inside a backup (PR review P0-2) ──────
+
+const backup = (over = {}) => ({ schemaVersion: 2, logs: [validEntry()], ...over });
+
+test('round trip: a pending session exported on one device is restored on a device that has none', () => {
+  const source = memStore();
+  const sourceRepo = makeRepo(source);
+  const pending = finishSession(ACTIVE, Date.parse('2026-07-20T22:37:00.000Z'));
+  sourceRepo.setPending(pending);
+  const out = buildExport(sourceRepo, { now: new Date('2026-07-20T23:00:00.000Z') });
+
+  const target = memStore();
+  const res = importBackup(target, JSON.parse(JSON.stringify(out)), { replay: replayState });
+  assert.equal(res.ok, true);
+  assert.equal(res.pending.action, 'restore');
+  assert.deepEqual(makeRepo(target).getPending(), pending, 'the capture survived the trip');
+});
+
+test('a conflict keeps the device copy, reports it, and writes nothing', () => {
+  const store = memStore();
+  const repo = makeRepo(store);
+  const mine = finishSession(ACTIVE, Date.parse('2026-07-20T22:37:00.000Z'));
+  repo.setPending(mine);
+  const theirs = finishSession(
+    { ...ACTIVE, activity: 'five_frame', startedAt: '2026-07-19T20:00:00.000Z' },
+    Date.parse('2026-07-19T20:10:00.000Z'));
+
+  const res = importBackup(store, backup({ pendingSession: theirs }), { replay: replayState });
+  assert.equal(res.ok, true);
+  assert.equal(res.pending.action, 'conflict');
+  assert.equal(res.pending.reason, 'local_pending_kept');
+  assert.deepEqual(repo.getPending(), mine, 'the parent keeps the capture in front of them');
+});
+
+test('a malformed pending session in a backup is reported and never written', () => {
+  for (const bad of [{ window:'midnight' }, { activity:'ghost' }, 'nope', 42,
+                     { ...finishSession(ACTIVE, Date.parse('2026-07-20T22:37:00.000Z')), endedAt:'not-a-date' }]){
+    const store = memStore();
+    const res = importBackup(store, backup({ pendingSession: bad }), { replay: replayState });
+    assert.equal(res.ok, true, 'the rest of the backup still imports');
+    assert.equal(res.pending.action, 'reject', JSON.stringify(bad));
+    assert.equal(makeRepo(store).getPending(), null, 'nothing unreadable reaches the store');
+  }
+});
+
+test('a pending session in a backup cannot smuggle extra fields or pollute prototypes', () => {
+  const store = memStore();
+  const hostile = JSON.parse(`{
+    "window":"bedtime","activity":"dino_flash",
+    "startedAt":"2026-07-20T22:30:00.000Z","endedAt":"2026-07-20T22:37:00.000Z","mins":7,
+    "evil":"</p><script>alert(1)</script>","__proto__":{"polluted":true}
+  }`);
+  const res = importBackup(store, backup({ pendingSession: hostile }), { replay: replayState });
+  assert.equal(res.pending.action, 'restore');
+  const stored = makeRepo(store).getPending();
+  assert.deepEqual(Object.keys(stored).sort(), ['activity','endedAt','mins','startedAt','window']);
+  assert.equal({}.polluted, undefined, 'Object.prototype untouched');
+});
+
+test('a failed import restores the device pending session along with everything else', () => {
+  const store = memStore();
+  const repo = makeRepo(store);
+  const mine = finishSession(ACTIVE, Date.parse('2026-07-20T22:37:00.000Z'));
+  repo.setPending(mine);
+
+  let failed = false;
+  const failing = {
+    getItem: k => store.getItem(k),
+    removeItem: k => store.removeItem(k),
+    setItem: (k, v) => {
+      if (k === KEYS.state && !failed){ failed = true; throw new Error('QuotaExceeded'); }
+      store.setItem(k, v);
+    }
+  };
+  const res = importBackup(failing, backup({ pendingSession: undefined }), { replay: replayState });
+  assert.equal(res.ok, false);
+  assert.equal(res.restored, true);
+  assert.deepEqual(makeRepo(store).getPending(), mine, 'the unsaved capture survived a failed import');
 });

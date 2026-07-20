@@ -768,7 +768,13 @@ function importData(input){
     const res=importBackup(localStorage, d, { replay: replayState });
     if(res.ok){
       renderHeader(); renderBanners(); renderWeekCard(); renderLogList(); renderAnalytics(); buildPlanPickers();
+      renderPendingNote();
       closeSettings(); showToast(t('toast_import'));
+      // An unsaved session inside the backup is never dropped in silence.
+      const pa=res.pending && res.pending.action;
+      if(pa==='restore') alert(t('imp_pending_restored'));
+      else if(pa==='conflict') alert(t('imp_pending_conflict'));
+      else if(pa==='reject') alert(t('imp_pending_invalid'));
     } else {
       alert(res.reason==='future_version'?t('imp_future'):res.reason==='write_failed'?t('imp_fail'):t('imp_invalid'));
     }
