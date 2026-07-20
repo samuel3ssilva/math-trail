@@ -21,6 +21,13 @@ O app responde às três perguntas de um pai ou mãe sem tempo:
 
 A parte interessante mora em [`js/engine.mjs`](js/engine.mjs) — funções puras, todas testadas: ajuste automático de nível, domínio de atividade, Modo História (roteiros viram aventuras quando há resistência), pausa de 48h para habilidades difíceis, desbloqueio por pré-requisito, alerta de correlação com docinhos e replay determinístico do histórico. Detalhes na [versão em inglês](README.md#the-adaptive-engine).
 
+## Privacidade em uma linha
+
+Sem contas, sem servidor, sem analytics, sem chamadas externas: os dados ficam no
+dispositivo. O repositório público contém apenas dados sintéticos, e um guarda
+automatizado de privacidade quebra o CI se identificadores pessoais aparecerem.
+Detalhes em [docs/privacy.md](docs/privacy.md).
+
 ## Rodar
 
 ```bash

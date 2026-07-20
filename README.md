@@ -37,19 +37,22 @@ The interesting part lives in [`js/engine.mjs`](js/engine.mjs) — pure function
 
 ## Engineering notes
 
-- **Zero dependencies, no framework.** A deliberate choice: the app must outlive framework churn, deploy as static files anywhere, and stay maintainable by one person. See [docs/decisions.md](docs/decisions.md).
-- **Pure engine, testable by design.** State transitions never touch the DOM or storage — 18 tests run in plain `node --test` ([tests/engine.test.mjs](tests/engine.test.mjs)).
-- **Data safety as a feature.** All data lives in localStorage with JSON export/import. A regression test loads a real v1 backup and asserts zero field loss — a guard born from a real incident, told in [docs/case-study.md](docs/case-study.md).
-- **Offline-first PWA.** Service worker caches the shell; installs to the home screen.
+- **Child privacy first.** No accounts, no server, no analytics, no third-party calls; all data stays in the device's localStorage. The public repo contains only synthetic data, and an automated privacy guard fails CI if personal identifiers ever appear in tracked files or the deploy artifact. See [docs/privacy.md](docs/privacy.md), [docs/threat-model.md](docs/threat-model.md) and [docs/data-inventory.md](docs/data-inventory.md).
+- **Zero dependencies, no framework.** A deliberate choice: the app must outlive framework churn, deploy as static files anywhere, and stay maintainable by one person. Even lint is dependency-free ([ADR-0003](docs/adr/0003-no-tooling-deps.md)).
+- **Deterministic, explainable engine.** Pure rules with injected clock and RNG: `replay(logs)` is clock-free and temporal rules are evaluated at read time ([ADR-0002](docs/adr/0002-clock-injection.md)). Honestly documented as a rule-based system — not ML — in [docs/model-card.md](docs/model-card.md).
+- **Local-calendar correctness.** "Today", streaks and the daily plan follow the device timezone, with America/Sao_Paulo boundary tests (a 21:00 UTC-flip bug class caught for good).
+- **Data safety as a feature.** Schema-versioned backups, validated imports with automatic snapshot + rollback, verbatim-or-nothing migration, and a regression suite that runs the real migration functions — a guard born from a real incident, told in [docs/case-study.md](docs/case-study.md).
+- **Offline-first PWA.** Versioned service-worker shell; installs to the home screen.
 - **i18n** — full PT-BR / EN interface.
-- **Single-file build.** `npm run build` inlines everything into `dist/index.html` for one-file static hosts.
+- **Gated deploys.** CI runs lint → 60+ tests → build → artifact checks; GitHub Pages publishes only the built `dist/` artifact, never the repo root.
 
 ## Run it
 
 ```bash
 npm run serve   # http://localhost:8123  (or just open index.html)
-npm test        # engine test suite
-npm run build   # single-file bundle in dist/
+npm test        # full suite: engine, timezone, storage/migration, privacy guard, demo, build
+npm run lint    # zero-dependency lint + format gate
+npm run build   # deployable dist/ + single-file bundle in dist/standalone/
 ```
 
 No install step — there is nothing to install.
