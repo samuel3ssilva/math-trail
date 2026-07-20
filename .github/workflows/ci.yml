@@ -7,14 +7,37 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run engine tests
+      - name: Lint and format checks
+        run: npm run lint
+      - name: Test suite (engine, time/timezone, storage/migration, privacy guard, demo, build)
         run: npm test
-      - name: Build single-file bundle
+      - name: Build deployable artifact
         run: npm run build
+      - name: Smoke test the artifact
+        run: |
+          test -f dist/index.html
+          test -f dist/standalone/index.html
+          node -e "const s=require('fs').readFileSync('dist/standalone/index.html','utf8');const m=s.match(/<script>\n([\s\S]*)\n<\/script>/);new Function(m[1]);console.log('standalone bundle parses OK')"
+      - name: PWA files present
+        run: |
+          test -f dist/manifest.webmanifest
+          test -f dist/sw.js
+          test -f dist/icons/icon-192.png
+          test -f dist/icons/icon-512.png
+      - name: No private or personal data in the artifact
+        run: |
+          ! grep -riE "$(echo aXNhZG9yYQ== | base64 -d)|$(echo bHVuYV8= | base64 -d)" dist/ || (echo 'personal data in dist' && exit 1)
+          test ! -d dist/private-local-data
+          test ! -d dist/tests
+          test ! -d dist/docs
+      - name: Upload artifact for deploy job
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
