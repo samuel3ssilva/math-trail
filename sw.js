@@ -6,7 +6,7 @@ const CACHE = 'math-trail-v3';
 const SHELL = [
   './', './index.html', './styles.css',
   './js/app.mjs', './js/engine.mjs', './js/activities.mjs',
-  './js/time.mjs', './js/storage.mjs', './js/demo.mjs',
+  './js/time.mjs', './js/storage.mjs', './js/demo.mjs', './js/i18n.mjs',
   './manifest.webmanifest'
 ];
 
