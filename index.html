@@ -220,10 +220,10 @@
   </button>
 </nav>
 
-<!-- SETTINGS MODAL -->
-<div id="modalBg" onclick="if(event.target===this)closeSettings()">
-  <div class="modal" role="dialog" aria-modal="true" aria-label="Settings">
-    <h2 style="margin-bottom:4px" data-i18n="set_title">Settings</h2>
+<!-- SETTINGS — native dialog: focus trap, Escape and focus restore for free -->
+<dialog id="settingsDialog" aria-labelledby="settingsTitle">
+  <div class="modal">
+    <h2 id="settingsTitle" style="margin-bottom:4px" data-i18n="set_title">Settings</h2>
     <label class="f" data-i18n="set_lang">Language / Idioma</label>
     <div class="langtoggle">
       <button id="lang-pt" onclick="setLang('pt')">Português</button>
@@ -257,7 +257,7 @@
       <button class="btn-danger" onclick="clearLogs()" data-i18n="set_clear">Delete all sessions</button>
     </div>
   </div>
-</div>
+</dialog>
 
 <div id="toast" role="status" aria-live="polite"></div>
 

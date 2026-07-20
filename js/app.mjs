@@ -729,9 +729,11 @@ function openSettings(){
   document.getElementById('set-name').value=p.name;
   document.getElementById('set-birth').value=p.birth;
   document.getElementById('set-chapter').value=String(p.chapter||0);
-  document.getElementById('modalBg').classList.add('open');
+  const d=document.getElementById('settingsDialog');
+  d.showModal(); // native: Escape closes, Tab is contained, focus returns to the opener
+  document.getElementById('set-name').focus();
 }
-function closeSettings(){ document.getElementById('modalBg').classList.remove('open'); }
+function closeSettings(){ document.getElementById('settingsDialog').close(); }
 function saveSettings(){
   const p=getProfile();
   p.name=document.getElementById('set-name').value.trim();
@@ -833,6 +835,12 @@ Object.assign(window, { setLang, showTab, openSettings, closeSettings, saveSetti
   exportData, importData, clearLogs, saveLog, editLog, deleteLog, cancelEdit,
   startSession, endSession, discardSession, swapPlan, viewPlan, pickFromList,
   generateBlueprint, reroll, prefillLog, markRestDay });
+
+// Backdrop click closes settings (clicks on the ::backdrop land on the
+// dialog element itself; the inner .modal swallows content clicks).
+document.getElementById('settingsDialog').addEventListener('click', (e)=>{
+  if(e.target===e.currentTarget) closeSettings();
+});
 
 // System status the parent can trust: offline is a mode, not a failure;
 // updates announce themselves instead of applying silently mid-use.
