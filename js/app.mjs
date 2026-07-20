@@ -876,11 +876,13 @@ function importData(input){
 function showTab(name){
   ['plan','log','history','analytics'].forEach(t=>{
     document.getElementById(`tab-content-${t}`).classList.add('hidden');
-    document.getElementById(`tab-${t}`).classList.remove('on');
+    const b=document.getElementById(`tab-${t}`);
+    b.classList.remove('on'); b.removeAttribute('aria-current');
   });
   const c=document.getElementById(`tab-content-${name}`);
   c.classList.remove('hidden'); c.classList.add('fade');
-  document.getElementById(`tab-${name}`).classList.add('on');
+  const btn=document.getElementById(`tab-${name}`);
+  btn.classList.add('on'); btn.setAttribute('aria-current','page');
   if(name==='plan') buildPlanPickers();
   if(name==='history') renderLogList();
   if(name==='analytics') renderAnalytics();
