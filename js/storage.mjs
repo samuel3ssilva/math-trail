@@ -182,7 +182,14 @@ export function buildExport(repo, { now, appId = 'math-trail' }){
  */
 export function appendLog(store, entry, { nextState }){
   const repo = makeRepo(store);
-  const before = store.getItem(KEYS.logs);
+  // Snapshot all THREE values this function touches. Restoring only the logs
+  // left a failure between the state write and the pending removal with a
+  // state that referenced a log no longer present — silent drift.
+  const before = {
+    [KEYS.logs]: store.getItem(KEYS.logs),
+    [KEYS.state]: store.getItem(KEYS.state),
+    [KEYS.pending]: store.getItem(KEYS.pending)
+  };
   const logs = repo.getLogs();
   logs.push(entry);
   try {
@@ -191,8 +198,16 @@ export function appendLog(store, entry, { nextState }){
     store.removeItem(KEYS.pending); // consumed only after a successful save
     return { ok:true };
   } catch (err) {
-    try { before === null ? store.removeItem(KEYS.logs) : store.setItem(KEYS.logs, before); } catch {}
-    return { ok:false, reason:'write_failed' };
+    // Best-effort restore: localStorage gives us no transaction, so we put the
+    // three values back one by one and report honestly if any put-back fails.
+    const failed = [];
+    for (const [key, value] of Object.entries(before)){
+      try { value === null ? store.removeItem(key) : store.setItem(key, value); }
+      catch { failed.push(key); }
+    }
+    return failed.length
+      ? { ok:false, reason:'write_failed', restored:false, rollbackFailed: failed }
+      : { ok:false, reason:'write_failed', restored:true };
   }
 }
 

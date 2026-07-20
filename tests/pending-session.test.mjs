@@ -97,6 +97,94 @@ test('finish → write failure: previous logs restored AND pending preserved', (
   assert.ok(repo.getPending(), 'pending session preserved after the failure');
 });
 
+// ── rollback of a failed save (PR review P0-3) ────────────────────────
+// localStorage offers no transaction. appendLog snapshots the three values it
+// touches and puts them back one by one; these tests pin that behaviour and
+// nothing stronger.
+
+/**
+ * A store whose FIRST write to a given key fails — the realistic shape of a
+ * quota error, which rejects the grown value but still accepts the original
+ * one being put back. (A store that rejects every write to that key would make
+ * the rollback impossible by construction; that case is its own test below.)
+ */
+function failingOn(store, { throwOnSet, throwOnRemove } = {}){
+  let setFailed = false, removeFailed = false;
+  return {
+    getItem: k => store.getItem(k),
+    setItem: (k, v) => {
+      if (k === throwOnSet && !setFailed){ setFailed = true; throw new Error('QuotaExceeded'); }
+      store.setItem(k, v);
+    },
+    removeItem: k => {
+      if (k === throwOnRemove && !removeFailed){ removeFailed = true; throw new Error('RemoveFailed'); }
+      store.removeItem(k);
+    }
+  };
+}
+
+function seeded(){
+  const store = memStore({ [KEYS.logs]: JSON.stringify([validEntry({ id: 1 })]) });
+  const repo = makeRepo(store);
+  repo.saveState({ marker: 'before' });
+  repo.setPending(finishSession(ACTIVE, Date.parse('2026-07-20T22:37:00.000Z')));
+  return { store, repo };
+}
+
+test('a failure writing the logs leaves logs, state and pending exactly as they were', () => {
+  const { store, repo } = seeded();
+  const res = appendLog(failingOn(store, { throwOnSet: KEYS.logs }), validEntry({ id: 2 }), { nextState: { marker: 'after' } });
+  assert.equal(res.ok, false);
+  assert.equal(res.restored, true);
+  assert.equal(repo.getLogs().length, 1);
+  assert.deepEqual(repo.getStateRaw(), { marker: 'before' }, 'state untouched');
+  assert.ok(repo.getPending(), 'pending preserved');
+});
+
+test('a failure writing the state rolls the logs back too', () => {
+  const { store, repo } = seeded();
+  const res = appendLog(failingOn(store, { throwOnSet: KEYS.state }), validEntry({ id: 2 }), { nextState: { marker: 'after' } });
+  assert.equal(res.ok, false);
+  assert.equal(repo.getLogs().length, 1, 'the log that was already written is rolled back');
+  assert.deepEqual(repo.getStateRaw(), { marker: 'before' });
+  assert.ok(repo.getPending());
+});
+
+test('a failure REMOVING the pending session rolls the state back — no drift', () => {
+  // The regression this gate exists for: logs and state were already written,
+  // then the pending removal failed. Restoring only the logs left a state that
+  // referenced a log no longer present.
+  const { store, repo } = seeded();
+  const res = appendLog(failingOn(store, { throwOnRemove: KEYS.pending }), validEntry({ id: 2 }), { nextState: { marker: 'after' } });
+  assert.equal(res.ok, false);
+  assert.equal(repo.getLogs().length, 1, 'logs restored');
+  assert.deepEqual(repo.getStateRaw(), { marker: 'before' }, 'state restored — this is what used to drift');
+  assert.ok(repo.getPending(), 'the capture is still there to be saved again');
+});
+
+test('a failure DURING the rollback is reported honestly, not swallowed', () => {
+  const { store } = seeded();
+  // state write fails, and putting the logs back fails as well
+  const doublyBroken = {
+    getItem: k => store.getItem(k),
+    setItem: (k) => { throw new Error(`cannot write ${k}`); },
+    removeItem: k => store.removeItem(k)
+  };
+  const res = appendLog(doublyBroken, validEntry({ id: 2 }), { nextState: { marker: 'after' } });
+  assert.equal(res.ok, false);
+  assert.equal(res.restored, false, 'must not claim a rollback that did not happen');
+  assert.ok(Array.isArray(res.rollbackFailed) && res.rollbackFailed.length, 'the failed keys are reported');
+});
+
+test('a successful save clears the pending session only at the very end', () => {
+  const { store, repo } = seeded();
+  const res = appendLog(store, validEntry({ id: 2 }), { nextState: { marker: 'after' } });
+  assert.equal(res.ok, true);
+  assert.equal(repo.getLogs().length, 2);
+  assert.deepEqual(repo.getStateRaw(), { marker: 'after' });
+  assert.equal(repo.getPending(), null, 'consumed only after both writes succeeded');
+});
+
 test('explicit discard removes the pending session', () => {
   const store = memStore();
   const repo = makeRepo(store);
