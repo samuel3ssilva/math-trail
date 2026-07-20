@@ -68,7 +68,7 @@ h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.2px}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
 .logo{width:46px;height:46px;border-radius:16px;background:var(--brand-bg);border:1.5px solid var(--brand-line);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
 .hactions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.gear{font-size:17px;width:42px;height:42px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);color:var(--ink-soft);display:flex;align-items:center;justify-content:center}
+.gear{font-size:17px;width:44px;height:44px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);color:var(--ink-soft);display:flex;align-items:center;justify-content:center}
 .gear:active{transform:scale(.94)}
 
 /* ── hero: this week ────────────────────────────── */
