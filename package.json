@@ -1,0 +1,25 @@
+{
+  "name": "math-trail",
+  "version": "2.0.0",
+  "description": "A calm, adaptive early-math practice planner for parents of toddlers. Zero dependencies, offline-first.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/",
+    "build": "node build.mjs",
+    "serve": "node -e \"import('node:http').then(({createServer})=>import('node:fs/promises').then(({readFile})=>createServer(async(q,r)=>{let p=q.url.split('?')[0];if(p==='/')p='/index.html';try{const d=await readFile('.'+p);r.writeHead(200,{'Content-Type':p.endsWith('.html')?'text/html':p.endsWith('.css')?'text/css':p.endsWith('.mjs')||p.endsWith('.js')?'text/javascript':p.endsWith('.webmanifest')?'application/manifest+json':p.endsWith('.png')?'image/png':'application/octet-stream'});r.end(d)}catch{r.writeHead(404);r.end()}}).listen(8123,()=>console.log('http://localhost:8123'))))\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/samuel3ssilva/math-trail.git"
+  },
+  "keywords": [
+    "early-math",
+    "preschool",
+    "education",
+    "tracker",
+    "pwa",
+    "vanilla-js"
+  ],
+  "author": "Samuel dos Santos Silva",
+  "license": "MIT"
+}
