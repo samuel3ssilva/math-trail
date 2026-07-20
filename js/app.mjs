@@ -443,7 +443,9 @@ const WIN_ICON={morning:'🌅',afternoon:'☀️',bedtime:'🌙'};
 function renderLogList(){
   const logs=getLogs();
   const el=document.getElementById('logList');
+  el.textContent='';
   if(!logs.length){
+    // trusted, code-controlled template — no user data
     el.innerHTML='<div class="card" style="text-align:center;color:var(--ink-faint);font-weight:700;font-size:13.5px;padding:38px 16px">🦕<br/><br/>'+t('empty_history')+'</div>';
     return;
   }
@@ -456,47 +458,73 @@ function renderLogList(){
   const today=localDateKey(now);
   const yest=localDateKey(addDays(now,-1));
 
-  el.innerHTML=Object.entries(byDay).map(([day,dayLogs])=>{
+  // Stored/imported data is UNTRUSTED: every user-influenced value below is
+  // rendered via textContent and every handler is a real listener — nothing
+  // from a log ever lands inside markup or an attribute (threat model T3).
+  const mk=(tag,cls,text)=>{ const n=document.createElement(tag); if(cls) n.className=cls; if(text!==undefined) n.textContent=text; return n; };
+
+  for(const [day,dayLogs] of Object.entries(byDay)){
     let label=day;
     if(day===today) label=t('today');
     else if(day===yest) label=t('yesterday');
     else if(day!=='unknown') label=new Date(day+'T12:00:00').toLocaleDateString(LANG==='pt'?'pt-BR':'en-GB',{weekday:'short',day:'numeric',month:'short'});
 
-    const cards=dayLogs.map(l=>{
-      const act=ACTIVITIES[l.activity];
-      const name=act?act.name:l.activity;
-      const cat=act?act.category:'';
-      const tm=l.timestamp?new Date(l.timestamp).toLocaleTimeString(LANG==='pt'?'pt-BR':'en-US',{hour:'2-digit',minute:'2-digit'}):'';
-      const teach=act?(act.teaches||[]).map(x=>`<span style="font-size:11px;font-weight:800;color:var(--c-${cat})">${x}</span>`).join('<span style="color:var(--line)"> · </span>'):'';
-      return `
-      <div class="sesscard" style="--cat:var(--c-${cat||'counting'})">
-        <div class="sess-top">
-          <span class="sessmeta">${WIN_ICON[l.window]||''} ${t('w_'+l.window)} · ${tm}${l.mins?` · ${l.mins} ${t('min_suffix')}`:''}</span>
-          <span class="sessacts">
-            <button class="iconbtn" onclick="editLog(${l.id})" aria-label="Edit">✏️</button>
-            <button class="iconbtn del" onclick="deleteLog(${l.id})" aria-label="Delete">🗑️</button>
-          </span>
-        </div>
-        <div class="sessname">${name}</div>
-        <div style="margin-bottom:8px">${teach}</div>
-        <div class="pills">
-          <span class="pill" style="background:var(--paper);color:var(--ink-soft)">${ENG_ICON[l.engagement]||'😐'} ${t('v_'+l.engagement)}</span>
-          <span class="pill" style="background:var(--paper);color:var(--ink-soft)">${COMP_ICON[l.completion]||''} ${t('v_'+l.completion)}</span>
-          <span class="pill" style="background:var(--paper);color:var(--ink-soft)">${EASE_ICON[l.ease]||''} ${t('v_'+l.ease)}</span>
-          <span class="pill" style="${l.reward==='extrinsic'?'background:var(--c-patterns-bg);color:var(--c-patterns)':'background:var(--brand-bg);color:var(--brand-deep)'}">${l.reward==='extrinsic'?'🍬':l.reward==='connection'?'🤗':'💚'} ${t('v_'+l.reward)}</span>
-        </div>
-        ${l.notes?`<p class="sessnote">“${l.notes}”</p>`:''}
-      </div>`;
-    }).join('');
+    const card=mk('div','card');
+    const daytop=mk('div','daytop');
+    daytop.append(mk('span','dl',label), mk('span','dc',`${dayLogs.length} ${dayLogs.length>1?t('sessions'):t('session')}`));
+    card.append(daytop);
 
-    return `<div class="card">
-      <div class="daytop">
-        <span class="dl">${label}</span>
-        <span class="dc">${dayLogs.length} ${dayLogs.length>1?t('sessions'):t('session')}</span>
-      </div>
-      ${cards}
-    </div>`;
-  }).join('');
+    for(const l of dayLogs){
+      const act=ACTIVITIES[l.activity];
+      const cat=act && CAT_LABEL[act.category] ? act.category : 'counting'; // validated against the catalog
+      const sess=mk('div','sesscard');
+      sess.style.setProperty('--cat',`var(--c-${cat})`);
+
+      const top=mk('div','sess-top');
+      const tm=l.timestamp?new Date(l.timestamp).toLocaleTimeString(LANG==='pt'?'pt-BR':'en-US',{hour:'2-digit',minute:'2-digit'}):'';
+      const mins=typeof l.mins==='number'?` · ${Math.round(l.mins)} ${t('min_suffix')}`:'';
+      const winLabel=WIN_ICON[l.window]!==undefined?`${WIN_ICON[l.window]} ${t('w_'+l.window)}`:'—';
+      top.append(mk('span','sessmeta',`${winLabel} · ${tm}${mins}`));
+
+      const acts=mk('span','sessacts');
+      const edit=mk('button','iconbtn','✏️');
+      edit.type='button'; edit.setAttribute('aria-label',t('al_edit'));
+      edit.addEventListener('click',()=>editLog(l.id));
+      const del=mk('button','iconbtn del','🗑️');
+      del.type='button'; del.setAttribute('aria-label',t('al_delete'));
+      del.addEventListener('click',()=>deleteLog(l.id));
+      acts.append(edit,del);
+      top.append(acts);
+      sess.append(top);
+
+      sess.append(mk('div','sessname', act?act.name:String(l.activity)));
+
+      if(act && (act.teaches||[]).length){
+        const teach=mk('div','sessteach');
+        act.teaches.forEach((x,i)=>{
+          if(i) teach.append(mk('span','tsep',' · '));
+          const s=mk('span','tskill',x);
+          s.style.color=`var(--c-${cat})`;
+          teach.append(s);
+        });
+        sess.append(teach);
+      }
+
+      const pills=mk('div','pills');
+      const pill=(text,extra)=>{ const p=mk('span','pill',text); p.classList.add(extra); return p; };
+      pills.append(
+        pill(`${ENG_ICON[l.engagement]||'😐'} ${t('v_'+l.engagement)}`,'pill-soft'),
+        pill(`${COMP_ICON[l.completion]||''} ${t('v_'+l.completion)}`,'pill-soft'),
+        pill(`${EASE_ICON[l.ease]||''} ${t('v_'+l.ease)}`,'pill-soft'),
+        pill(`${l.reward==='extrinsic'?'🍬':l.reward==='connection'?'🤗':'💚'} ${t('v_'+l.reward)}`, l.reward==='extrinsic'?'pill-treat':'pill-brand')
+      );
+      sess.append(pills);
+
+      if(typeof l.notes==='string' && l.notes) sess.append(mk('p','sessnote',`\u201C${l.notes}\u201D`));
+      card.append(sess);
+    }
+    el.append(card);
+  }
 }
 
 // ─────────────────────────────────────────────────────

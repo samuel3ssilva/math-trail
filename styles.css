@@ -161,6 +161,11 @@ select:focus,input:focus{border-color:var(--brand)}
 .pills{display:flex;flex-wrap:wrap;gap:5px}
 .iconbtn{font-size:14px;min-width:38px;min-height:38px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:var(--paper);border:1px solid var(--line-soft);color:var(--ink-soft)}
 .iconbtn.del{background:var(--danger-bg);color:var(--danger);border-color:#F2D8D2}
+.sessteach{margin-bottom:8px;font-size:var(--fs-2xs);font-weight:800}
+.tsep{color:var(--line)}
+.pill-soft{background:var(--paper);color:var(--ink-soft)}
+.pill-brand{background:var(--brand-bg);color:var(--brand-deep)}
+.pill-treat{background:var(--c-patterns-bg);color:var(--c-patterns)}
 /* Notes are the reflective gold of history — quoted, not buried (audit §history) */
 .sessnote{font-size:var(--fs-sm);color:var(--ink-soft);font-weight:600;margin-top:8px;padding:8px 12px;background:var(--paper);border-left:3px solid var(--brand-line);border-radius:0 8px 8px 0}
 .daytop{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
