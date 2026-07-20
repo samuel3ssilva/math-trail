@@ -233,6 +233,18 @@ select:focus,input:focus{border-color:var(--brand)}
 .hint{font-size:12px;color:var(--ink-faint);font-weight:600;margin:4px 0 8px}
 .restbtn{width:100%;margin-top:2px;padding:12px;min-height:46px;border-radius:12px;border:1.5px dashed var(--line);background:none;color:var(--ink-faint);font-weight:700;font-size:13px}
 .restbtn:active{background:var(--paper)}
+
+/* ── workflow: skip link, plan reason, pending-save, system details ── */
+.skiplink{position:absolute;left:-9999px;top:8px;z-index:100;background:var(--brand-deep);color:#fff;padding:10px 16px;border-radius:10px;font-weight:800;font-size:14px}
+.skiplink:focus{left:12px}
+.planblock .pwhy{display:block;font-size:12px;font-weight:600;color:var(--brand-deep);margin-top:4px}
+.pendnote{display:none;background:var(--brand-bg);border:1px solid var(--brand-line);color:var(--brand-deep);font-size:13px;font-weight:700;border-radius:var(--r-sm);padding:10px 12px;margin-bottom:6px}
+.sysdetails summary{list-style:none;cursor:pointer;display:flex;align-items:center;min-height:44px;gap:8px}
+.sysdetails summary::-webkit-details-marker{display:none}
+.sysdetails summary::after{content:'▾';margin-left:auto;color:var(--ink-faint);transition:transform .2s}
+.sysdetails[open] summary::after{transform:rotate(180deg)}
+.sysdetails summary h2{margin-bottom:0}
+.sysdetails[open] summary{margin-bottom:6px}
 .cube.big.rest{background:var(--dusk-bg);border-color:var(--dusk-line);color:var(--dusk);font-size:14px}
 .datechip{display:inline-block;background:var(--brand-bg);color:var(--brand-deep);border:1px solid var(--brand-line);border-radius:99px;padding:3px 11px;font-size:12px;font-weight:800;margin-bottom:10px}
 

@@ -16,7 +16,9 @@
 
 <body>
 
-<div id="bannerZone"></div>
+<a class="skiplink" href="#main" data-i18n="skip_link">Skip to today's plan</a>
+
+<div id="bannerZone" aria-live="polite"></div>
 
 <div class="wrap">
 
@@ -38,10 +40,9 @@
   <!-- ACTIVE SESSION -->
   <div id="sessionBar"></div>
 
-  <!-- THIS WEEK (hero) -->
-  <section class="card hero fade" id="weekCard"></section>
+  <main id="main">
 
-  <!-- ═══ PLAN ═══ -->
+  <!-- ═══ PLAN — today first: the parent's question is "what do we do now?" ═══ -->
   <div id="tab-content-plan" class="fade">
     <div class="card">
       <h2 data-i18n="plan_title">Today's sessions</h2>
@@ -96,6 +97,9 @@
       <button type="button" class="restbtn" onclick="markRestDay()">🌙 <span data-i18n="btn_rest">Not a good moment today</span></button>
     </div>
     <div id="blueprintOutput" class="hidden"></div>
+
+    <!-- WEEK RHYTHM — reflection, below today's plan on purpose -->
+    <section class="card hero fade" id="weekCard"></section>
   </div>
 
   <!-- ═══ LOG ═══ -->
@@ -103,6 +107,7 @@
     <div class="card">
       <h2 data-i18n="log_title">Log this session</h2>
       <div class="editnote" id="editNote"><span data-i18n="edit_note">Editing a saved session</span> — <button type="button" onclick="cancelEdit()" data-i18n="cancel">cancel</button></div>
+      <div class="pendnote" id="pendingNote" role="status"></div>
       <form onsubmit="saveLog(event)">
         <label class="f" for="log-window" data-i18n="lbl_window">Session window</label>
         <select id="log-window">
@@ -183,11 +188,13 @@
     <div class="card">
       <div class="statgrid" id="statsGrid"></div>
     </div>
-    <div class="card">
-      <h2 data-i18n="st_adaptive">Adaptive State</h2>
+    <details class="card sysdetails">
+      <summary><h2 data-i18n="st_adaptive">How suggestions adapt</h2></summary>
+      <p class="sub" style="margin:2px 0 12px" data-i18n="st_adaptive_sub">A peek at how the app adjusts to your sessions — nothing here is a judgment.</p>
       <div class="stategrid" id="stateStatus"></div>
-    </div>
+    </details>
   </div>
+  </main>
 </div>
 
 <!-- BOTTOM NAVIGATION -->

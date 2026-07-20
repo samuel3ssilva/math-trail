@@ -40,7 +40,7 @@ v_too_easy:'Too easy',v_just_right:'Just right',v_too_hard:'Too hard',
 v_intrinsic:'Play itself',v_connection:'Connection',v_extrinsic:'Treat',
 btn_save:'Save session',btn_update:'Update session',
 st_trail:'Skill Trail',st_trail_sub:'Where she is on the path to 10',
-st_adaptive:'Adaptive State',st_goal:'Goal Progress',st_mood:'Mood over time',
+st_adaptive:'How suggestions adapt',st_goal:'Goal Progress',st_mood:'Mood over time',
 set_title:'Settings',set_name:"Child's name",set_birth:'Birth month',
 set_chapter:'Current Kate Snow chapter (boosts matching activities)',
 ch0:'No chapter focus',ch1:'Ch 1 · Counting & number concept',ch4:'Ch 4 · Numbers 6–10',ch5:'Ch 5 · Written numerals 0–10',ch6:'Ch 6 · Comparing quantities',ch7:'Ch 7 · Addition & subtraction stories',
@@ -90,6 +90,13 @@ sess_discard_confirm:'Discard this session without logging it?',
 sess_busy:'Finish the current session first.',toast_started:'Session started — have fun!',
 min_suffix:'min',
 app_tagline:'Small moments, real progress',
+skip_link:"Skip to today's plan",
+chip_started:'in progress',no_pick:'No suggestion right now — pick one from the list below.',
+pending_note:'Session finished — save it below to keep the record.',
+off_toast:'No internet — everything keeps working on this device.',
+on_toast:'Back online.',
+upd_toast:'A new version is ready — reload to use it.',
+st_adaptive_sub:'A peek at how the app adjusts to your sessions — nothing here is a judgment.',
 demo_on:'Demo mode — synthetic sample data loaded. Clear it in Settings.',
 btn_rest:'Not a good moment today',rest_done:'Noted — rest is part of learning too 💚',
 rest_chip:'rest day',
@@ -118,7 +125,7 @@ v_too_easy:'Fácil demais',v_just_right:'No ponto',v_too_hard:'Difícil demais',
 v_intrinsic:'Brincadeira',v_connection:'Conexão',v_extrinsic:'Docinho',
 btn_save:'Salvar sessão',btn_update:'Atualizar sessão',
 st_trail:'Trilha de habilidades',st_trail_sub:'Onde ela está no caminho até o 10',
-st_adaptive:'Estado adaptativo',st_goal:'Progresso das metas',st_mood:'Humor ao longo do tempo',
+st_adaptive:'Como as sugestões se adaptam',st_goal:'Experiências em construção',st_mood:'Humor ao longo do tempo',
 set_title:'Configurações',set_name:'Nome da criança',set_birth:'Mês de nascimento',
 set_chapter:'Capítulo atual da Kate Snow (prioriza atividades do capítulo)',
 ch0:'Sem foco de capítulo',ch1:'Cap. 1 · Contagem e conceito de número',ch4:'Cap. 4 · Números 6–10',ch5:'Cap. 5 · Numerais escritos 0–10',ch6:'Cap. 6 · Comparando quantidades',ch7:'Cap. 7 · Histórias de adição e subtração',
@@ -168,6 +175,13 @@ sess_discard_confirm:'Descartar esta sessão sem registrar?',
 sess_busy:'Encerre a sessão atual primeiro.',toast_started:'Sessão iniciada — divirtam-se!',
 min_suffix:'min',
 app_tagline:'Pequenos momentos, progresso de verdade',
+skip_link:'Ir direto para o plano de hoje',
+chip_started:'em andamento',no_pick:'Sem sugestão agora — escolha uma da lista abaixo.',
+pending_note:'Sessão encerrada — salve abaixo para guardar o registro.',
+off_toast:'Sem internet — tudo continua funcionando neste aparelho.',
+on_toast:'Conexão de volta.',
+upd_toast:'Uma nova versão está pronta — recarregue para usar.',
+st_adaptive_sub:'Uma espiada em como o app se ajusta às suas sessões — nada aqui é julgamento.',
 demo_on:'Modo demonstração — dados sintéticos carregados. Apague em Configurações.',
 btn_rest:'Hoje não é um bom momento',rest_done:'Anotado — descansar também faz parte 💚',
 rest_chip:'dia de pausa',
@@ -235,17 +249,28 @@ function buildPlanPickers(){
     const chip=document.getElementById('done-'+winKey);
     if(chip){
       const n=todayLogs.filter(l=>l.window===winKey).length;
-      chip.classList.toggle('hidden',!n);
-      chip.textContent=t('done_win');
+      const act=getActive();
+      if(act && act.window===winKey){
+        chip.classList.remove('hidden'); chip.textContent='▶ '+t('chip_started');
+      } else {
+        chip.classList.toggle('hidden',!n);
+        chip.textContent=t('done_win');
+      }
     }
     const pb=document.getElementById('plan-'+winKey);
     if(pb){
       const a=ACTIVITIES[plan[winKey]];
+      // Surface WHY this was picked: top reason from the live scoring pass.
+      let reason='';
+      if(a){
+        const entry=scorePool(winKey,null).find(x=>x.id===plan[winKey]);
+        if(entry&&entry.reasons.length) reason=`<span class="pwhy">${entry.reasons[0]}</span>`;
+      }
       pb.innerHTML=a?`
         <span class="pcat" style="color:var(--c-${a.category})">${t('plan_pick')} · ${t('cat_'+a.category)}</span>
         <span class="pname">${a.name}</span>
-        <span class="pmeta">${a.materials} · ~${MINS[plan[winKey]]||4} ${t('min_suffix')}</span>`
-        :`<span class="pmeta">${t('choose_act')}</span>`;
+        <span class="pmeta">${a.materials} · ~${MINS[plan[winKey]]||4} ${t('min_suffix')}</span>${reason}`
+        :`<span class="pmeta">${t('no_pick')}</span>`;
     }
     const sel=document.getElementById('pick-'+winKey);
     if(!sel) return;
@@ -342,7 +367,7 @@ function startSession(winKey){
   const plan=getDailyPlan();
   const actId=plan[winKey]; if(!actId) return;
   setActive({window:winKey, activity:actId, startedAt:new Date().toISOString()});
-  renderSessionBar();
+  renderSessionBar(); buildPlanPickers();
   viewPlan(winKey);
   showToast(t('toast_started'));
 }
@@ -367,18 +392,24 @@ function renderSessionBar(){
     if(tEl&&cur) tEl.textContent=fmtElapsed(cur.startedAt);
   },1000);
 }
+// A forgotten timer must not record an absurd duration (audit F3).
+const MAX_SESSION_MINS = 120;
+
 function endSession(){
   const a=getActive(); if(!a) return;
-  pendingMins=Math.max(1,Math.round((Date.now()-new Date(a.startedAt))/60000));
-  setActive(null); renderSessionBar();
+  pendingMins=Math.min(MAX_SESSION_MINS, Math.max(1,Math.round((Date.now()-new Date(a.startedAt))/60000)));
+  setActive(null); renderSessionBar(); buildPlanPickers();
   document.getElementById('log-window').value=a.window;
   document.getElementById('log-activity').value=a.activity;
+  // The session is over but not yet recorded — keep that visible until saved (audit A4).
+  const pn=document.getElementById('pendingNote');
+  if(pn){ pn.style.display='block'; pn.textContent=t('pending_note'); }
   showTab('log');
   showToast(t('toast_prefill'));
 }
 function discardSession(){
   if(!confirm(t('sess_discard_confirm'))) return;
-  setActive(null); pendingMins=null; renderSessionBar();
+  setActive(null); pendingMins=null; renderSessionBar(); buildPlanPickers();
 }
 
 // ─────────────────────────────────────────────────────
@@ -461,6 +492,7 @@ function saveLog(e){
     notes:document.getElementById('log-notes').value.trim()
   };
   if(pendingMins!==null && editingId===null){ entry.mins=pendingMins; pendingMins=null; }
+  const pn=document.getElementById('pendingNote'); if(pn) pn.style.display='none';
   const state=getState();
   const prevLvl=getLevel(state, entry.activity);
 
@@ -629,8 +661,8 @@ function renderHeader(){
   const p=getProfile();
   const title = p.name ? (LANG==='pt' ? `Matemática da ${p.name}` : `${p.name}'s Math Trail`) : 'Math Trail';
   document.getElementById('appTitle').textContent = title;
-  const ch=p.chapter&&Number(p.chapter)?` · Kate Snow ${LANG==='pt'?'cap.':'ch.'} ${p.chapter}`:'';
-  document.getElementById('headerSub').textContent = p.name ? `${ageString()}${ch}` : t('app_tagline');
+  // Book-chapter focus is configuration, not identity — it lives in Settings only.
+  document.getElementById('headerSub').textContent = p.name ? ageString() : t('app_tagline');
 }
 
 function renderWeekCard(){
@@ -894,5 +926,18 @@ Object.assign(window, { setLang, showTab, openSettings, closeSettings, saveSetti
   startSession, endSession, discardSession, swapPlan, viewPlan, pickFromList,
   generateBlueprint, reroll, prefillLog, markRestDay });
 
-if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost'))
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+// System status the parent can trust: offline is a mode, not a failure;
+// updates announce themselves instead of applying silently mid-use.
+window.addEventListener('offline', ()=>showToast(t('off_toast')));
+window.addEventListener('online', ()=>showToast(t('on_toast')));
+
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
+  navigator.serviceWorker.register('./sw.js').then(reg=>{
+    reg.addEventListener('updatefound', ()=>{
+      const w=reg.installing;
+      if(w) w.addEventListener('statechange', ()=>{
+        if(w.state==='installed' && navigator.serviceWorker.controller) showToast(t('upd_toast'));
+      });
+    });
+  }).catch(()=>{});
+}
