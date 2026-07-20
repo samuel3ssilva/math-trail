@@ -252,6 +252,11 @@ select:focus,input:focus{border-color:var(--brand)}
 .sysdetails[open] summary::after{transform:rotate(180deg)}
 .sysdetails summary h2{margin-bottom:0}
 .sysdetails[open] summary{margin-bottom:6px}
+.moredetails{border-top:1.5px dashed var(--line);margin-top:var(--sp-4)}
+.moredetails summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:var(--fs-sm);font-weight:800;color:var(--ink-faint)}
+.moredetails summary::-webkit-details-marker{display:none}
+.moredetails summary::before{content:'▸';margin-right:8px;transition:transform .2s}
+.moredetails[open] summary::before{transform:rotate(90deg)}
 .cube.big.rest{background:var(--dusk-bg);border-color:var(--dusk-line);color:var(--dusk);font-size:14px}
 .datechip{display:inline-block;background:var(--brand-bg);color:var(--brand-deep);border:1px solid var(--brand-line);border-radius:99px;padding:3px 11px;font-size:12px;font-weight:800;margin-bottom:10px}
 

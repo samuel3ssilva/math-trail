@@ -31,7 +31,8 @@ time_morning:'~8–11 AM',time_afternoon:'~12–5 PM',time_bedtime:'~8 PM',
 btn_reroll:'Different activity',
 log_title:'Log this session',edit_note:'Editing a saved session',cancel:'cancel',
 lbl_window:'Session window',lbl_activity:'Activity done',lbl_completion:'How did it go?',
-lbl_mood:"Child's mood",lbl_ease:'Cognitive ease',lbl_reward:'What sustained the activity?',lbl_notes:'Notes (optional)',
+lbl_mood:"Child's mood",lbl_ease:'How was the challenge?',lbl_reward:'What sustained the activity?',lbl_notes:'Notes (optional)',
+more_details:'More details (optional)',
 ph_notes:'E.g. "Counted 4 strawberries without help."',
 opt_morning:'Morning (~8–11 AM)',opt_afternoon:'Afternoon (~12–5 PM)',opt_bedtime:'Bedtime (~8 PM)',
 v_full:'Full',v_partial:'Partial',v_refused:'Refused',
@@ -116,12 +117,13 @@ time_morning:'8–11h',time_afternoon:'12–17h',time_bedtime:'~20h',
 btn_reroll:'Outra atividade',
 log_title:'Registrar esta sessão',edit_note:'Editando uma sessão salva',cancel:'cancelar',
 lbl_window:'Janela da sessão',lbl_activity:'Atividade realizada',lbl_completion:'Como foi?',
-lbl_mood:'Humor da criança',lbl_ease:'Dificuldade',lbl_reward:'O que sustentou a atividade?',lbl_notes:'Notas (opcional)',
+lbl_mood:'Humor da criança',lbl_ease:'Como estava o desafio?',lbl_reward:'O que sustentou a atividade?',lbl_notes:'Notas (opcional)',
+more_details:'Mais detalhes (opcional)',
 ph_notes:'Ex.: "Contou 4 morangos sem ajuda."',
 opt_morning:'Manhã (8–11h)',opt_afternoon:'Tarde (12–17h)',opt_bedtime:'Noite (~20h)',
 v_full:'Completa',v_partial:'Parcial',v_refused:'Recusou',
 v_excited:'Animada',v_neutral:'Neutra',v_resisted:'Resistiu',
-v_too_easy:'Fácil demais',v_just_right:'No ponto',v_too_hard:'Difícil demais',
+v_too_easy:'Muito fácil',v_just_right:'Na medida',v_too_hard:'Muito difícil',
 v_intrinsic:'Brincadeira',v_connection:'Conexão',v_extrinsic:'Docinho',
 btn_save:'Salvar sessão',btn_update:'Atualizar sessão',
 st_trail:'Trilha de habilidades',st_trail_sub:'Onde ela está no caminho até o 10',
@@ -525,6 +527,9 @@ function editLog(id){
   setRadio('completion',l.completion); setRadio('engagement',l.engagement);
   setRadio('ease',l.ease); setRadio('reward',l.reward);
   document.getElementById('log-notes').value=l.notes||'';
+  // When the saved session used the optional fields, show them expanded.
+  const more=document.getElementById('logMore');
+  if(more) more.open = (l.reward && l.reward!=='intrinsic') || !!l.notes;
   document.getElementById('editNote').style.display='block';
   document.getElementById('saveBtn').textContent=t('btn_update');
   showTab('log');

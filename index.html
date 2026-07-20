@@ -139,7 +139,7 @@
         </fieldset>
 
         <fieldset>
-          <legend class="f" data-i18n="lbl_ease">Cognitive ease</legend>
+          <legend class="f" data-i18n="lbl_ease">How was the challenge?</legend>
           <div class="radios c3">
             <label><input type="radio" name="ease" value="too_easy"><span class="opt"><span class="e">😴</span><span class="t" data-i18n="v_too_easy">Too easy</span></span></label>
             <label><input type="radio" name="ease" value="just_right" checked><span class="opt"><span class="e">🎯</span><span class="t" data-i18n="v_just_right">Just right</span></span></label>
@@ -147,17 +147,23 @@
           </div>
         </fieldset>
 
-        <fieldset>
-          <legend class="f" data-i18n="lbl_reward">What sustained the activity?</legend>
-          <div class="radios c3">
-            <label><input type="radio" name="reward" value="intrinsic" checked><span class="opt"><span class="e">💚</span><span class="t" data-i18n="v_intrinsic">Play itself</span></span></label>
-            <label><input type="radio" name="reward" value="connection"><span class="opt"><span class="e">🤗</span><span class="t" data-i18n="v_connection">Connection</span></span></label>
-            <label><input type="radio" name="reward" value="extrinsic"><span class="opt"><span class="e">🍬</span><span class="t" data-i18n="v_extrinsic">Treat</span></span></label>
-          </div>
-        </fieldset>
+        <!-- Three taps cover most sessions; everything below is optional
+             with safe defaults (audit A2). -->
+        <details class="moredetails" id="logMore">
+          <summary data-i18n="more_details">More details (optional)</summary>
 
-        <label class="f" for="log-notes" data-i18n="lbl_notes">Notes (optional)</label>
-        <input id="log-notes" type="text" data-i18n-ph="ph_notes" placeholder="What happened? Any special moments...">
+          <fieldset>
+            <legend class="f" data-i18n="lbl_reward">What sustained the activity?</legend>
+            <div class="radios c3">
+              <label><input type="radio" name="reward" value="intrinsic" checked><span class="opt"><span class="e">💚</span><span class="t" data-i18n="v_intrinsic">Play itself</span></span></label>
+              <label><input type="radio" name="reward" value="connection"><span class="opt"><span class="e">🤗</span><span class="t" data-i18n="v_connection">Connection</span></span></label>
+              <label><input type="radio" name="reward" value="extrinsic"><span class="opt"><span class="e">🍬</span><span class="t" data-i18n="v_extrinsic">Treat</span></span></label>
+            </div>
+          </fieldset>
+
+          <label class="f" for="log-notes" data-i18n="lbl_notes">Notes (optional)</label>
+          <input id="log-notes" type="text" data-i18n-ph="ph_notes" placeholder="What happened? Any special moments...">
+        </details>
 
         <div style="height:18px"></div>
         <button type="submit" class="primary" id="saveBtn" data-i18n="btn_save">Save session</button>
