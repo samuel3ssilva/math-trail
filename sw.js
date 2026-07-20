@@ -2,7 +2,7 @@
 // (data already lives in localStorage; only the shell needs caching).
 // Bump the cache name on EVERY release that changes shell files —
 // otherwise returning users keep the previous version (threat model T7).
-const CACHE = 'math-trail-v2';
+const CACHE = 'math-trail-v3';
 const SHELL = [
   './', './index.html', './styles.css',
   './js/app.mjs', './js/engine.mjs', './js/activities.mjs',

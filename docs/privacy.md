@@ -18,8 +18,8 @@ and no data about any real child exists in this repository.**
 
 - No accounts, no sign-in, no server, no database.
 - **No analytics of any kind** — no page views, no telemetry, no crash reporting.
-- **No third-party requests at runtime** except Google Fonts for typefaces
-  (static font files; no cookies set by the app). Everything else is same-origin.
+- **Zero third-party requests at runtime.** Typography uses system font
+  stacks; every request the app makes is same-origin.
 - No camera, no microphone, no voice recognition, no location.
 - No calls to AI/LLM services. The "adaptive engine" is local, rule-based code.
 - Nothing about the child is transmitted anywhere, ever.
