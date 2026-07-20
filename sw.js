@@ -1,9 +1,12 @@
 // Math Trail service worker — cache-first app shell so the tracker works offline
 // (data already lives in localStorage; only the shell needs caching).
-const CACHE = 'math-trail-v1';
+// Bump the cache name on EVERY release that changes shell files —
+// otherwise returning users keep the previous version (threat model T7).
+const CACHE = 'math-trail-v2';
 const SHELL = [
   './', './index.html', './styles.css',
   './js/app.mjs', './js/engine.mjs', './js/activities.mjs',
+  './js/time.mjs', './js/storage.mjs', './js/demo.mjs',
   './manifest.webmanifest'
 ];
 

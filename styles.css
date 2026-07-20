@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   LEGACY'S MATH WORLD — design system
+   MATH TRAIL — design system
    Paper & snap-cube identity:
    · warm paper ground, deep pine ink, dino-green brand
    · time-of-day tints for the three daily windows
@@ -231,6 +231,9 @@ select:focus,input:focus{border-color:var(--brand)}
 .sessionbar button{background:rgba(255,255,255,.16);border-radius:9px;padding:7px 10px;font-size:11.5px;font-weight:800;color:#fff;white-space:nowrap}
 .sessionbar button.ghost{background:none;text-decoration:underline;opacity:.85;padding:7px 4px}
 .hint{font-size:12px;color:var(--ink-faint);font-weight:600;margin:4px 0 8px}
+.restbtn{width:100%;margin-top:2px;padding:12px;min-height:46px;border-radius:12px;border:1.5px dashed var(--line);background:none;color:var(--ink-faint);font-weight:700;font-size:13px}
+.restbtn:active{background:var(--paper)}
+.cube.big.rest{background:var(--dusk-bg);border-color:var(--dusk-line);color:var(--dusk);font-size:14px}
 .datechip{display:inline-block;background:var(--brand-bg);color:var(--brand-deep);border:1px solid var(--brand-line);border-radius:99px;padding:3px 11px;font-size:12px;font-weight:800;margin-bottom:10px}
 
 /* ── desktop layout ─────────────────────────────── */

@@ -1,31 +1,28 @@
-// Math Trail — UI layer: i18n, storage, rendering, daily plan and session flow.
+// Math Trail — UI layer: i18n, rendering, daily plan and session flow.
+// Persistence lives in storage.mjs; domain rules live in engine.mjs;
+// local-calendar time lives in time.mjs. This file only wires them to the DOM.
 import { ACTIVITIES, CAT_LABEL, COMPOSITION_IDS, MINS, MILESTONES, WINDOWS } from './activities.mjs';
-import { defaultState, getLevel, applyLog, replayState, checkRewardAlert,
-         milestoneProgress, currentFocus, weightedPick, hashStr, mulberry32,
-         scoreActivities } from './engine.mjs';
+import { defaultState, getLevel, applyLog, replayState, rewardObservation,
+         evaluateTemporalRules, milestoneProgress, currentFocus, weightedPick,
+         hashStr, mulberry32, scoreActivities } from './engine.mjs';
+import { localDateKey, sessionDayKey, addDays, fmtElapsed } from './time.mjs';
+import { makeRepo, migrateStore, importBackup, buildExport, SCHEMA_VERSION } from './storage.mjs';
+import { generateDemoData, DEMO_PROFILE } from './demo.mjs';
 
-// ═════════════════════════════════════════════════════════════════════
-// [redacted]
-// [redacted]
-// [redacted]
-// [redacted]
-// [redacted]
-// [redacted]
-// [redacted]
-// [redacted]
-// [redacted]
-// ═════════════════════════════════════════════════════════════════════
+// The app assumes common household manipulatives (interlocking cubes, small toy
+// counters, dice, paper and pen) — see the activity catalog for what each uses.
+
+const repo = makeRepo(localStorage);
 
 // ─────────────────────────────────────────────────────
 // I18N — PT / EN interface language
 // ─────────────────────────────────────────────────────
-const K_LANG='mathtrail_lang';
-let LANG=localStorage.getItem(K_LANG)||'pt';
+let LANG=repo.getLang()||'pt';
 const I18N={
 en:{
 tab_plan:'Plan',tab_log:'Log',tab_history:'History',tab_stats:'Stats',
 plan_title:"Today's sessions",
-plan_sub:'Each window already has today\'s pick, chosen by the adaptive engine. Start it, swap it, or choose from the list — a short activity already counts.',
+plan_sub:'These are possible opportunities, not three daily obligations — pick one, several, or none. A short activity already counts.',
 wh_morning:'Morning · ~8–11 AM',wd_morning:'Low pressure · breakfast table',
 wh_afternoon:'Afternoon · ~12–5 PM',wd_afternoon:'Full focus · all activities',
 wh_bedtime:'Bedtime · ~8 PM',wd_bedtime:'Quick & calm · 3 min max',
@@ -52,7 +49,7 @@ wc_sessions:'Sessions · 7d',wc_streak:'Day streak',wc_excited:'Excited',wc_focu
 chip_normal:'Normal',chip_story:'Story',chip_cool:'Cool-Down',
 banner_story:'Story Mode ON — {n} session(s) left. Scripts reframed as adventures!',
 banner_cool:'Cool-Down: Part-Part-Whole paused ~{h}h. Serving other skills only.',
-banner_reward:'Treats correlate with resistance. Try connection-as-reward next sessions!',
+banner_reward:'In the few sessions logged so far ({t} with a treat, {o} without), resistance was more frequent when a treat was used. Not enough data for a conclusion — just something to notice.',
 choose_act:'— choose activity —',done_today:' · ✓ done today',
 your_pick:'Your pick — chosen by you',
 r_chapter:'Kate Snow ch. {c} focus',r_gap:'Fills the current gap:',r_fresh:'Fresh — not played recently',
@@ -66,11 +63,15 @@ toast_cleared:'All sessions cleared.',
 empty_history:'No sessions yet.<br/>Pick a window in Plan and log your first one!',
 today:'Today',yesterday:'Yesterday',session:'session',sessions:'sessions',
 cat_subitizing:'Subitizing',cat_counting:'Counting 6–10',cat_one_more_less:'One More / One Less',cat_composition:'Part-Part-Whole',cat_stories:'Number Stories',cat_counting_on:'Counting On · Frames',cat_comparison:'Comparison',cat_patterns:'Patterns',cat_shapes:'Shapes & Sorting',cat_workbook:'Workbook',
-ms_calibrated:'calibrated at start',ms_mastered:'Mastered',ms_strong:'strong sessions',
+ms_calibrated:'starting point',ms_mastered:'Mastered',ms_strong:'strong sessions',
 as_story:'Story / Camouflage Mode',as_story_on:'{n} sessions remaining',as_inactive:'Inactive',
 as_cool:'Part-Part-Whole Cool-Down (48h)',as_until:'Until ~',
 as_dice:'Dice Mastery → Count-On unlocked',as_dice_on:'Two-Dice Count-On is in the pool.',as_dice_off:'Reach Level 3 on Dice Flash + 2× "Too Easy"',
-as_treat:'Treat Correlation Alert',as_treat_on:'Treats linked to ≥30% more resistance',as_treat_off:'No correlation detected',
+as_treat:'Reward observation',
+as_treat_on:'{t} treat / {o} other sessions: resistance was more frequent with treats. Small sample — no conclusion.',
+as_treat_off:'{t} treat / {o} other sessions: no notable difference so far.',
+as_treat_low:'Not enough sessions to compare rewards yet ({t} treat / {o} other — needs 5 of each).',
+obs_disclaimer:'Describes this log only. Not a diagnosis, recommendation or causal claim.',
 as_lvl:'Level adjustments',
 gp_mastered:'Mastered',gp_prog:'Progressing',gp_notstarted:'Not started',gp_building:'Building',gp_strong:'strong',
 mood_empty:'Log sessions to see the mood line.',
@@ -89,12 +90,17 @@ sess_discard_confirm:'Discard this session without logging it?',
 sess_busy:'Finish the current session first.',toast_started:'Session started — have fun!',
 min_suffix:'min',
 app_tagline:'Small moments, real progress',
-demo_on:'Demo mode — sample data loaded. Clear it in Settings.'
+demo_on:'Demo mode — synthetic sample data loaded. Clear it in Settings.',
+btn_rest:'Not a good moment today',rest_done:'Noted — rest is part of learning too 💚',
+rest_chip:'rest day',
+imp_invalid:'This file is not a valid backup (missing or invalid fields). Nothing was changed.',
+imp_future:'This backup comes from a newer version of the app. Update the app first. Nothing was changed.',
+imp_fail:'Import failed — your previous data was restored automatically.'
 },
 pt:{
 tab_plan:'Plano',tab_log:'Registrar',tab_history:'Histórico',tab_stats:'Progresso',
 plan_title:'Sessões de hoje',
-plan_sub:'Cada janela já tem a escolha de hoje, feita pelo motor adaptativo. Inicie, troque ou escolha da lista — uma atividade curta já é uma vitória.',
+plan_sub:'Estas são oportunidades possíveis, não três obrigações diárias — escolha uma, várias ou nenhuma. Uma atividade curta já é uma vitória.',
 wh_morning:'Manhã · 8–11h',wd_morning:'Leve · na mesa do café',
 wh_afternoon:'Tarde · 12–17h',wd_afternoon:'Foco total · todas as atividades',
 wh_bedtime:'Noite · ~20h',wd_bedtime:'Rápido e calmo · máx. 3 min',
@@ -121,7 +127,7 @@ wc_sessions:'Sessões · 7d',wc_streak:'Dias seguidos',wc_excited:'Animada',wc_f
 chip_normal:'Normal',chip_story:'História',chip_cool:'Pausa',
 banner_story:'Modo História ATIVO — {n} sessão(ões) restante(s). Roteiros viram aventuras!',
 banner_cool:'Pausa: Parte-Parte-Todo pausado por ~{h}h. Sugerindo outras habilidades.',
-banner_reward:'Docinhos estão ligados a mais resistência. Tente conexão como recompensa!',
+banner_reward:'Nos poucos registros disponíveis ({t} com docinho, {o} sem), houve mais resistência nas sessões com docinho. Ainda não há dados suficientes para uma conclusão — é só um ponto de atenção.',
 choose_act:'— escolher atividade —',done_today:' · ✓ feita hoje',
 your_pick:'Sua escolha',
 r_chapter:'Foco no cap. {c} (Kate Snow)',r_gap:'Preenche a lacuna atual:',r_fresh:'Novidade — não jogada recentemente',
@@ -135,11 +141,15 @@ toast_cleared:'Todas as sessões foram apagadas.',
 empty_history:'Nenhuma sessão ainda.<br/>Escolha uma janela no Plano e registre a primeira!',
 today:'Hoje',yesterday:'Ontem',session:'sessão',sessions:'sessões',
 cat_subitizing:'Subitização',cat_counting:'Contagem 6–10',cat_one_more_less:'Um a mais / a menos',cat_composition:'Parte-Parte-Todo',cat_stories:'Histórias numéricas',cat_counting_on:'Contar a partir de · Molduras',cat_comparison:'Comparação',cat_patterns:'Padrões',cat_shapes:'Formas e classificação',cat_workbook:'Livro de exercícios',
-ms_calibrated:'calibrado no início',ms_mastered:'Dominado',ms_strong:'sessões fortes',
+ms_calibrated:'ponto de partida',ms_mastered:'Dominado',ms_strong:'sessões fortes',
 as_story:'Modo História / Camuflagem',as_story_on:'{n} sessões restantes',as_inactive:'Inativo',
 as_cool:'Pausa de Parte-Parte-Todo (48h)',as_until:'Até ~',
 as_dice:'Domínio do dado → Contar a partir de liberado',as_dice_on:'Dois Dados: Contar a partir de está disponível.',as_dice_off:'Chegue ao Nível 3 no Dice Flash + 2× "Fácil demais"',
-as_treat:'Alerta de correlação com docinhos',as_treat_on:'Docinhos ligados a ≥30% mais resistência',as_treat_off:'Nenhuma correlação detectada',
+as_treat:'Observação sobre recompensas',
+as_treat_on:'{t} sessões com docinho / {o} sem: houve mais resistência com docinho. Amostra pequena — sem conclusão.',
+as_treat_off:'{t} sessões com docinho / {o} sem: nenhuma diferença notável até agora.',
+as_treat_low:'Ainda não há sessões suficientes para comparar recompensas ({t} com docinho / {o} sem — precisa de 5 de cada).',
+obs_disclaimer:'Descreve apenas este registro. Não é diagnóstico, recomendação nem relação causal.',
 as_lvl:'Ajustes de nível',
 gp_mastered:'Dominado',gp_prog:'Progredindo',gp_notstarted:'Não iniciado',gp_building:'Construindo',gp_strong:'fortes',
 mood_empty:'Registre sessões para ver a linha de humor.',
@@ -158,11 +168,16 @@ sess_discard_confirm:'Descartar esta sessão sem registrar?',
 sess_busy:'Encerre a sessão atual primeiro.',toast_started:'Sessão iniciada — divirtam-se!',
 min_suffix:'min',
 app_tagline:'Pequenos momentos, progresso de verdade',
-demo_on:'Modo demonstração — dados fictícios carregados. Apague em Configurações.'
+demo_on:'Modo demonstração — dados sintéticos carregados. Apague em Configurações.',
+btn_rest:'Hoje não é um bom momento',rest_done:'Anotado — descansar também faz parte 💚',
+rest_chip:'dia de pausa',
+imp_invalid:'Este arquivo não é um backup válido (campos ausentes ou inválidos). Nada foi alterado.',
+imp_future:'Este backup vem de uma versão mais nova do app. Atualize o app primeiro. Nada foi alterado.',
+imp_fail:'A importação falhou — seus dados anteriores foram restaurados automaticamente.'
 }
 };
 function t(k){ const d=I18N[LANG]||I18N.en; return (d[k]!==undefined?d[k]:(I18N.en[k]!==undefined?I18N.en[k]:k)); }
-function setLang(l){ LANG=l; localStorage.setItem(K_LANG,l); applyLang(); }
+function setLang(l){ LANG=l; repo.saveLang(l); applyLang(); }
 function applyLang(){
   document.documentElement.lang=LANG;
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-i18n')); });
@@ -174,44 +189,25 @@ function applyLang(){
   if(editingId!==null) document.getElementById('saveBtn').textContent=t('btn_update');
 }
 
-const K_LOGS='mathtrail_logs', K_STATE='mathtrail_state', K_PROFILE='mathtrail_profile',
-      K_PLAN='mathtrail_plan', K_ACTIVE='mathtrail_active';
+// Data migration from older key layouts happens via the standard backup
+// import flow (Settings → Import JSON), never via hard-coded legacy keys —
+// see docs/privacy.md ("no personal identifiers in code") and docs/decisions.md §5.
+function migrate(){ try{ migrateStore(localStorage); }catch(e){} }
 
-function migrate(){
-  // v1 lived under legacy_* keys — carry everything over verbatim, never destructively.
-  try{
-    const LEGACY={legacy_logs:K_LOGS,legacy_state:K_STATE,legacy_profile:K_PROFILE,
-                  legacy_lang:K_LANG,legacy_plan:K_PLAN,legacy_active:K_ACTIVE};
-    Object.entries(LEGACY).forEach(([oldKey,newKey])=>{
-      if(!localStorage.getItem(newKey) && localStorage.getItem(oldKey))
-        localStorage.setItem(newKey, localStorage.getItem(oldKey));
-    });
-  }catch(e){}
-  try{
-    if(!localStorage.getItem(K_LOGS) && localStorage.getItem('old1_logs')){
-      const old=JSON.parse(localStorage.getItem('old1_logs'))||[];
-      old.forEach(l=>{ delete l.photo; });          // photos retired — free the quota
-      localStorage.setItem(K_LOGS, JSON.stringify(old));
-      localStorage.removeItem('old1_logs'); localStorage.removeItem('old1_state');
-    }
-  }catch(e){}
-}
-
-function getLogs(){ try{ return JSON.parse(localStorage.getItem(K_LOGS))||[]; }catch{ return []; } }
-function saveLogs(l){ localStorage.setItem(K_LOGS, JSON.stringify(l)); }
+const getLogs=()=>repo.getLogs();
+const saveLogs=(l)=>repo.saveLogs(l);
 
 const DEFAULT_PROFILE={ name:'', birth:'2023-06', chapter:0 };
-function getProfile(){ try{ return Object.assign({},DEFAULT_PROFILE,JSON.parse(localStorage.getItem(K_PROFILE))||{}); }catch{ return {...DEFAULT_PROFILE}; } }
-function saveProfile(p){ localStorage.setItem(K_PROFILE, JSON.stringify(p)); }
+const getProfile=()=>repo.getProfile(DEFAULT_PROFILE);
+const saveProfile=(p)=>repo.saveProfile(p);
 
+// Effective state = historical state + temporal rules evaluated "now".
+// The historical state on disk is never silently rewritten by the clock.
 function getState(){
-  let s; try{ s=Object.assign(defaultState(),JSON.parse(localStorage.getItem(K_STATE))||{}); }catch{ s=defaultState(); }
-  if(s.cooldownActive && s.cooldownUntil && new Date()>new Date(s.cooldownUntil)){
-    s.cooldownActive=false; s.cooldownUntil=null;
-  }
-  return s;
+  const raw=Object.assign(defaultState(), repo.getStateRaw()||{});
+  return evaluateTemporalRules(raw, new Date());
 }
-function saveState(s){ localStorage.setItem(K_STATE, JSON.stringify(s)); }
+const saveState=(s)=>repo.saveState(s);
 
 // ─────────────────────────────────────────────────────
 // ENGINE v2 — apply one log to state (rolling-window rules)
@@ -225,15 +221,15 @@ function saveState(s){ localStorage.setItem(K_STATE, JSON.stringify(s)); }
 let currentWindow=null, currentPick=null;
 
 function doneTodayIds(){
-  const today=new Date().toISOString().slice(0,10);
-  return new Set(getLogs().filter(l=>(l.timestamp||'').slice(0,10)===today).map(l=>l.activity));
+  const today=localDateKey();
+  return new Set(getLogs().filter(l=>sessionDayKey(l)===today).map(l=>l.activity));
 }
 
 // Plan tab pickers — one dropdown per window, done-today items locked
 function buildPlanPickers(){
   const done=doneTodayIds();
-  const today=new Date().toISOString().slice(0,10);
-  const todayLogs=getLogs().filter(l=>(l.timestamp||'').slice(0,10)===today);
+  const today=localDateKey();
+  const todayLogs=getLogs().filter(l=>sessionDayKey(l)===today);
   const plan=getDailyPlan();
   Object.keys(WINDOWS).forEach(winKey=>{
     const chip=document.getElementById('done-'+winKey);
@@ -301,8 +297,8 @@ function reroll(){
   renderBlueprint(pick.id, currentWindow, pick.reasons);
 }
 function getDailyPlan(){
-  const today=new Date().toISOString().slice(0,10);
-  let plan; try{ plan=JSON.parse(localStorage.getItem(K_PLAN))||{}; }catch{ plan={}; }
+  const today=localDateKey(); // local calendar: the plan stays stable until local midnight
+  let plan=repo.getPlan();
   if(plan.date!==today){
     plan={date:today};
     Object.keys(WINDOWS).forEach(w=>{
@@ -310,7 +306,7 @@ function getDailyPlan(){
       const rng=mulberry32(hashStr(today+'|'+w));
       plan[w]=scored.length?weightedPick(scored,rng).id:null;
     });
-    localStorage.setItem(K_PLAN,JSON.stringify(plan));
+    repo.savePlan(plan);
   }
   return plan;
 }
@@ -318,9 +314,9 @@ function swapPlan(winKey){
   const plan=getDailyPlan();
   const scored=scorePool(winKey, plan[winKey]);
   if(!scored.length) return;
-  const pick=weightedPick(scored);
+  const pick=weightedPick(scored, Math.random);
   plan[winKey]=pick.id;
-  localStorage.setItem(K_PLAN,JSON.stringify(plan));
+  repo.savePlan(plan);
   buildPlanPickers();
   currentWindow=winKey; currentPick=pick.id;
   renderBlueprint(pick.id, winKey, pick.reasons);
@@ -338,8 +334,8 @@ function viewPlan(winKey){
 // ACTIVE SESSION — start, live timer, finish into the log
 // ─────────────────────────────────────────────────────
 let sessTick=null, pendingMins=null;
-function getActive(){ try{ return JSON.parse(localStorage.getItem(K_ACTIVE)); }catch{ return null; } }
-function setActive(a){ if(a) localStorage.setItem(K_ACTIVE,JSON.stringify(a)); else localStorage.removeItem(K_ACTIVE); }
+const getActive=()=>repo.getActive();
+const setActive=(a)=>repo.setActive(a);
 
 function startSession(winKey){
   if(getActive()){ showToast(t('sess_busy')); return; }
@@ -349,11 +345,6 @@ function startSession(winKey){
   renderSessionBar();
   viewPlan(winKey);
   showToast(t('toast_started'));
-}
-function fmtElapsed(startIso){
-  const s=Math.max(0,Math.floor((Date.now()-new Date(startIso))/1000));
-  const m=Math.floor(s/60), r=s%60;
-  return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0');
 }
 function renderSessionBar(){
   const el=document.getElementById('sessionBar');
@@ -521,9 +512,19 @@ function deleteLog(id){
 }
 function clearLogs(){
   if(!confirm(t('confirm_clear'))) return;
-  localStorage.removeItem(K_LOGS); localStorage.removeItem(K_STATE);
+  repo.saveLogs([]); repo.saveState(defaultState()); repo.saveRestDays([]);
   renderLogList(); renderBanners(); renderWeekCard(); renderAnalytics(); buildPlanPickers(); closeSettings();
   showToast(t('toast_cleared'));
+}
+
+// "Not a good moment today" — a rest day is a first-class, penalty-free entry.
+// It never reduces any metric; the streak treats it as continuity (see renderWeekCard).
+function markRestDay(){
+  const today=localDateKey();
+  const days=repo.getRestDays();
+  if(!days.includes(today)){ days.push(today); repo.saveRestDays(days); }
+  renderWeekCard(); buildPlanPickers();
+  showToast(t('rest_done'));
 }
 
 // ─────────────────────────────────────────────────────
@@ -543,11 +544,12 @@ function renderLogList(){
   }
   const byDay={};
   [...logs].reverse().forEach(l=>{
-    const day=(l.timestamp||'').slice(0,10)||'unknown';
+    const day=sessionDayKey(l); // local calendar day of the session
     (byDay[day]=byDay[day]||[]).push(l);
   });
-  const today=new Date().toISOString().slice(0,10);
-  const yest=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const now=new Date();
+  const today=localDateKey(now);
+  const yest=localDateKey(addDays(now,-1));
 
   el.innerHTML=Object.entries(byDay).map(([day,dayLogs])=>{
     let label=day;
@@ -605,8 +607,9 @@ function renderBanners(){
     const h=Math.max(0,Math.ceil((new Date(state.cooldownUntil)-new Date())/3600000));
     zone.innerHTML+=`<div class="banner" style="background:#2E6FBF"><span class="pulse">●</span> ${t('banner_cool').replace('{h}',h)}</div>`;
   }
-  if(checkRewardAlert(logs))
-    zone.innerHTML+=`<div class="banner" style="background:#1E5B41">${t('banner_reward')}</div>`;
+  const obs=rewardObservation(logs);
+  if(obs.status==='observation')
+    zone.innerHTML+=`<div class="banner" style="background:#1E5B41">${t('banner_reward').replace('{t}',obs.treatCount).replace('{o}',obs.otherCount)}</div>`;
 
   const chip=document.getElementById('modeChip');
   if(state.camouflageActive){ chip.classList.remove('hidden'); chip.textContent=t('chip_story'); chip.style.cssText='background:var(--amber-bg);color:var(--amber-ink)'; }
@@ -616,7 +619,7 @@ function renderBanners(){
 
 function ageString(){
   const p=getProfile();
-  const [y,m]=(p.birth||'2023-06').split('-').map(Number);
+  const [y,m]=(p.birth||DEFAULT_PROFILE.birth).split('-').map(Number);
   const now=new Date();
   let months=(now.getFullYear()-y)*12+(now.getMonth()+1-m);
   if(months<0) months=0;
@@ -633,27 +636,32 @@ function renderHeader(){
 function renderWeekCard(){
   const logs=getLogs();
   const now=new Date();
-  const weekAgo=new Date(now-6.999*86400000);
-  const week=logs.filter(l=>l.timestamp&&new Date(l.timestamp)>=weekAgo);
-  // day streak (today or yesterday anchors it)
-  const days=new Set(logs.map(l=>(l.timestamp||'').slice(0,10)));
-  let streak=0; let d=new Date();
-  if(!days.has(d.toISOString().slice(0,10))) d=new Date(d-86400000);
-  while(days.has(d.toISOString().slice(0,10))){ streak++; d=new Date(d-86400000); }
+  const todayKey=localDateKey(now);
+  const weekKeys=new Set([...Array(7)].map((_,i)=>localDateKey(addDays(now,-(6-i)))));
+  const week=logs.filter(l=>weekKeys.has(sessionDayKey(l)));
+  const restDays=new Set(repo.getRestDays());
+  // Day streak — a gentle secondary signal, never the headline metric.
+  // A logged rest day ("not a good moment today") preserves continuity: it
+  // neither breaks the streak nor inflates it with a fake session.
+  const days=new Set(logs.map(l=>sessionDayKey(l)));
+  const countsForStreak=k=>days.has(k)||restDays.has(k);
+  let streak=0; let d=now;
+  if(!countsForStreak(localDateKey(d))) d=addDays(d,-1);
+  while(countsForStreak(localDateKey(d))){ if(days.has(localDateKey(d))) streak++; d=addDays(d,-1); }
   const exc=week.filter(l=>l.engagement==='excited').length;
   const focus=currentFocus(logs);
   const fp=milestoneProgress(focus,logs);
 
-  // 7-day snap-cube strip (last 7 days, today last)
+  // 7-day snap-cube strip (last 7 local days, today last)
   const byDay={};
-  logs.forEach(l=>{ const k=(l.timestamp||'').slice(0,10); if(k) byDay[k]=(byDay[k]||0)+1; });
-  const todayKey=now.toISOString().slice(0,10);
+  logs.forEach(l=>{ const k=sessionDayKey(l); if(k!=='unknown') byDay[k]=(byDay[k]||0)+1; });
   const strip=[...Array(7)].map((_,i)=>{
-    const dd=new Date(now-(6-i)*86400000);
-    const k=dd.toISOString().slice(0,10);
+    const dd=addDays(now,-(6-i));
+    const k=localDateKey(dd);
     const n=byDay[k]||0;
+    const rest=!n&&restDays.has(k);
     const wl=dd.toLocaleDateString(LANG==='pt'?'pt-BR':'en-GB',{weekday:'narrow'});
-    return `<div class="wday${k===todayKey?' today':''}"><span class="cube big${n?' on':''}">${n||''}</span><span class="wl">${wl}</span></div>`;
+    return `<div class="wday${k===todayKey?' today':''}"><span class="cube big${n?' on':''}${rest?' rest':''}" title="${rest?t('rest_chip'):''}">${n||(rest?'☾':'')}</span><span class="wl">${wl}</span></div>`;
   }).join('');
 
   const parts=[];
@@ -708,8 +716,12 @@ function renderAnalytics(){
      detail:state.cooldownActive?t('as_until')+new Date(state.cooldownUntil).toLocaleString(LANG==='pt'?'pt-BR':'en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):t('as_inactive'), c:'#2E6FBF', bg:'#E7F0FA'},
     {label:t('as_dice'), on:state.diceMastered,
      detail:state.diceMastered?t('as_dice_on'):t('as_dice_off'), c:'#0E7266', bg:'#E4F2F0'},
-    {label:t('as_treat'), on:checkRewardAlert(logs),
-     detail:checkRewardAlert(logs)?t('as_treat_on'):t('as_treat_off'), c:'#1E5B41', bg:'#E4F0E8'}
+    (()=>{ // reward observation — humble by design: sample sizes always shown
+      const obs=rewardObservation(logs);
+      const key=obs.status==='insufficient'?'as_treat_low':obs.status==='observation'?'as_treat_on':'as_treat_off';
+      const detail=t(key).replace('{t}',obs.treatCount).replace('{o}',obs.otherCount)+' '+t('obs_disclaimer');
+      return {label:t('as_treat'), on:obs.status==='observation', detail, c:'#1E5B41', bg:'#E4F0E8'};
+    })()
   ];
   // level ups summary
   const lvlUps=Object.entries(state.levels||{}).filter(([id,l])=>ACTIVITIES[id]&&l!==(ACTIVITIES[id].startLevel||1));
@@ -796,12 +808,12 @@ function saveSettings(){
   showToast(t('toast_settings'));
 }
 function exportData(){
-  const data={app:'math-trail',version:2,exportedAt:new Date().toISOString(),
-    profile:getProfile(), state:getState(), logs:getLogs()};
+  const now=new Date();
+  const data=buildExport(repo,{ now });
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=`math-world-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.download=`math-trail-backup-${localDateKey(now)}.json`;
   a.click(); URL.revokeObjectURL(a.href);
   showToast(t('toast_export'));
 }
@@ -809,16 +821,18 @@ function importData(input){
   const f=input.files[0]; if(!f) return;
   const r=new FileReader();
   r.onload=e=>{
-    try{
-      const d=JSON.parse(e.target.result);
-      if(!d.logs || !Array.isArray(d.logs)) throw new Error('bad');
-      if(!confirm(t('confirm_import').replace('{n}',d.logs.length))) return;
-      saveLogs(d.logs);
-      if(d.profile) saveProfile(Object.assign(getProfile(),d.profile));
-      saveState(replayState(d.logs));
+    let d;
+    try{ d=JSON.parse(e.target.result); }
+    catch{ alert(t('imp_invalid')); input.value=''; return; }
+    if(!confirm(t('confirm_import').replace('{n}',Array.isArray(d?.logs)?d.logs.length:0))){ input.value=''; return; }
+    // importBackup validates first, snapshots current data, and restores it on failure.
+    const res=importBackup(localStorage, d, { replay: replayState });
+    if(res.ok){
       renderHeader(); renderBanners(); renderWeekCard(); renderLogList(); renderAnalytics(); buildPlanPickers();
       closeSettings(); showToast(t('toast_import'));
-    }catch(err){ alert(t('alert_badfile')); }
+    } else {
+      alert(res.reason==='future_version'?t('imp_future'):res.reason==='write_failed'?t('imp_fail'):t('imp_invalid'));
+    }
     input.value='';
   };
   r.readAsText(f);
@@ -857,31 +871,12 @@ function buildActivitySelect(){
 }
 
 // DEMO MODE — ?demo=1 seeds ~3 weeks of sample data (only when storage is empty)
+// Data generation lives in demo.mjs (pure, seeded, 100% synthetic — see
+// scripts/generate-demo.mjs for the committed reference artifact).
 function seedDemo(){
-  const rng=mulberry32(42);
-  const winKeys=['morning','afternoon','bedtime'];
-  const logs=[];
-  for(let d=20; d>=0; d--){
-    const nSess = rng()<0.25 ? 0 : (rng()<0.6 ? 1 : 2);
-    for(let k=0;k<nSess;k++){
-      const win=winKeys[Math.floor(rng()*3)];
-      const pool=WINDOWS[win].pool.filter(id=>id!=='two_dice_counton');
-      const act=pool[Math.floor(rng()*pool.length)];
-      const date=new Date(Date.now()-d*86400000-(k?3600000*(2+k):0));
-      const r=rng();
-      logs.push({
-        id:date.getTime(), timestamp:date.toISOString(), window:win, activity:act,
-        completion:r<0.62?'full':r<0.9?'partial':'refused',
-        engagement:r<0.55?'excited':r<0.88?'neutral':'resisted',
-        ease:rng()<0.2?'too_easy':rng()<0.12?'too_hard':'just_right',
-        reward:rng()<0.75?'intrinsic':rng()<0.6?'connection':'extrinsic',
-        mins:2+Math.floor(rng()*6),
-        notes:''
-      });
-    }
-  }
+  const { logs, profile } = generateDemoData({ baseDate: new Date(), rng: mulberry32(42) });
   saveLogs(logs);
-  saveProfile({name:'Ana', birth:'2023-04', chapter:4});
+  saveProfile(profile);
   saveState(replayState(logs));
 }
 
@@ -897,7 +892,7 @@ applyLang();
 Object.assign(window, { setLang, showTab, openSettings, closeSettings, saveSettings,
   exportData, importData, clearLogs, saveLog, editLog, deleteLog, cancelEdit,
   startSession, endSession, discardSession, swapPlan, viewPlan, pickFromList,
-  generateBlueprint, reroll, prefillLog });
+  generateBlueprint, reroll, prefillLog, markRestDay });
 
 if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost'))
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
