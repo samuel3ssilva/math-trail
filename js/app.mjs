@@ -26,9 +26,11 @@ const msLabel=m=>{ const v=t('ms_'+m.id); return v!=='ms_'+m.id?v:m.label; };
 const msDetail=m=>{ const v=t('msd_'+m.id); return v!=='msd_'+m.id?v:m.detail; };
 function setLang(l){ LANG=l; repo.saveLang(l); applyLang(); }
 function applyLang(){
-  document.documentElement.lang=LANG;
+  document.documentElement.lang = LANG==='pt' ? 'pt-BR' : 'en';
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-i18n')); });
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.setAttribute('placeholder',t(el.getAttribute('data-i18n-ph'))); });
+  // Accessible names are interface text too — they follow the language.
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{ el.setAttribute('aria-label',t(el.getAttribute('data-i18n-aria'))); });
   const bp=document.getElementById('lang-pt'), be=document.getElementById('lang-en');
   if(bp&&be){ bp.classList.toggle('on',LANG==='pt'); be.classList.toggle('on',LANG==='en'); }
   buildActivitySelect(); buildPlanPickers(); renderHeader(); renderBanners(); renderWeekCard();
@@ -696,7 +698,8 @@ function renderAnalytics(){
       d:l.timestamp?new Date(l.timestamp).toLocaleDateString(LANG==='pt'?'pt-BR':'en-GB',{day:'numeric',month:'short'}):''}));
     const line=pts.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
     const area=`M${pts[0].x} ${H-pad} `+pts.map(p=>`L${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')+` L${pts[n-1].x} ${H-pad} Z`;
-    el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="Mood over the last ${n} sessions">
+    const chartLabel=t('chart_label').replace('{n}',n).replace('{from}',pts[0].d||'—').replace('{to}',pts[n-1].d||'—');
+    el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="${chartLabel}">
       ${[1,2,3].map(v=>`<line x1="${pad}" y1="${y(v)}" x2="${W-pad}" y2="${y(v)}" stroke="rgba(46,125,91,.14)" stroke-width="1" stroke-dasharray="3 4"/>`).join('')}
       <text x="2" y="${y(3)+4}" font-size="10">🌟</text><text x="2" y="${y(2)+4}" font-size="10">😐</text><text x="2" y="${y(1)+4}" font-size="10">😤</text>
       <path d="${area}" fill="rgba(46,125,91,.09)"/>
