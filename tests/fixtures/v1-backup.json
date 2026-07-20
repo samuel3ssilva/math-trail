@@ -1,0 +1,13 @@
+{
+  "app": "legacy-math-world",
+  "version": 2,
+  "exportedAt": "2026-07-10T21:00:00.000Z",
+  "profile": { "name": "Ana", "birth": "2023-04", "chapter": 7 },
+  "logs": [
+    { "id": 1751230800000, "timestamp": "2026-06-29T21:00:00.000Z", "window": "morning",   "activity": "dice_flash",     "completion": "full",    "engagement": "excited",  "ease": "too_easy",   "reward": "intrinsic", "notes": "reconheceu o 4 na hora" },
+    { "id": 1751317200000, "timestamp": "2026-06-30T21:00:00.000Z", "window": "afternoon", "activity": "dice_flash",     "completion": "full",    "engagement": "excited",  "ease": "too_easy",   "reward": "intrinsic", "notes": "" },
+    { "id": 1751403600000, "timestamp": "2026-07-01T21:00:00.000Z", "window": "bedtime",   "activity": "hidden_dinos",   "completion": "partial", "engagement": "neutral",  "ease": "just_right", "reward": "intrinsic", "notes": "" },
+    { "id": 1751490000000, "timestamp": "2026-07-02T21:00:00.000Z", "window": "afternoon", "activity": "long_row_count", "completion": "full",    "engagement": "excited",  "ease": "just_right", "reward": "extrinsic", "notes": "círculo completo sem pular" },
+    { "id": 1751576400000, "timestamp": "2026-07-03T21:00:00.000Z", "window": "bedtime",   "activity": "one_less_sneak", "completion": "refused", "engagement": "resisted", "ease": "too_hard",   "reward": "extrinsic", "notes": "dia cansativo" }
+  ]
+}
