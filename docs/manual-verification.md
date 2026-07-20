@@ -70,3 +70,32 @@ Still outstanding, on real hardware:
 
 1. Enter/Space on the gear button opens the dialog;
 2. Escape closes it and returns focus to the gear button.
+
+## 2026-07-20 — visual polish round (layout, rhythm, composition)
+
+Same environment as above. Measured with `getBoundingClientRect()` at a 390 px
+viewport, demo data, before = `5b742d9` and after = this round. The old files
+were checked out into the working tree to measure, then restored.
+
+| Measure (390 px) | Before | After |
+|---|---|---|
+| Plan tab height | 1531 px | **1285 px** (−16%) |
+| Window heights (morning / afternoon / bedtime) | 370 / 321 / 307 | **224 / 348 / 224** |
+| History tab height | 4950 px | 4634 px (−6%) |
+| One session row | 179 px | 163 px (−9%) |
+| History icon-button hit area | 38 px | **44 px** |
+
+The window numbers are the point of the round. Before, the three proposals were
+within 20% of each other in height with identical treatment — nothing told the
+parent where to look. After, the window the clock is in is ~55% taller than the
+other two and is the only one with a filled primary button, while the other two
+keep every capability.
+
+Honest note on history: the structural change (a session is a row on the day's
+thread instead of a card inside a card, and the icon buttons are ink-light) is
+larger than the 6% height gain suggests. Wrapping pills still drive most of the
+remaining height, and compacting those was not attempted in this round.
+
+Also checked: no horizontal scroll at 320 px (`scrollWidth === clientWidth ===
+320`); the window title wraps at a word boundary; the state chip stays on the
+header line; the settings dialog behaviour verified earlier is unchanged.
