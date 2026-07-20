@@ -41,9 +41,9 @@
 
   <!-- ═══ PLAN — today first: the parent's question is "what do we do now?" ═══ -->
   <div id="tab-content-plan" class="fade">
-    <div class="card">
+    <div class="section">
       <h2 data-i18n="plan_title">Sessões de hoje</h2>
-      <p class="sub" style="margin:-6px 0 14px" data-i18n="plan_sub">Estas são oportunidades possíveis, não três obrigações diárias — escolha uma, várias ou nenhuma. Uma atividade curta já é uma vitória.</p>
+      <p class="sub" data-i18n="plan_sub">Estas são oportunidades possíveis, não três obrigações diárias — escolha uma, várias ou nenhuma. Uma atividade curta já é uma vitória.</p>
       <div class="wingrid">
       <div class="winblock win-morning">
         <div class="winhead">
@@ -56,9 +56,12 @@
           <button class="startbtn" onclick="startSession('morning')">▶&nbsp;<span data-i18n="btn_start">Iniciar</span></button>
           <button class="swapbtn" onclick="swapPlan('morning')">↻ <span data-i18n="btn_swap">Trocar</span></button>
         </div>
-        <div class="orpick">
-          <select id="pick-morning" onchange="pickFromList('morning')" data-i18n-aria="al_pick_morning" aria-label="Escolher atividade"></select>
-        </div>
+        <details class="pickmore" id="more-morning">
+          <summary data-i18n="pick_other">Escolher outra atividade</summary>
+          <div class="orpick">
+            <select id="pick-morning" onchange="pickFromList('morning')" data-i18n-aria="al_pick_morning" aria-label="Escolher atividade"></select>
+          </div>
+        </details>
       </div>
       <div class="winblock win-afternoon">
         <div class="winhead">
@@ -71,9 +74,12 @@
           <button class="startbtn" onclick="startSession('afternoon')">▶&nbsp;<span data-i18n="btn_start">Iniciar</span></button>
           <button class="swapbtn" onclick="swapPlan('afternoon')">↻ <span data-i18n="btn_swap">Trocar</span></button>
         </div>
-        <div class="orpick">
-          <select id="pick-afternoon" onchange="pickFromList('afternoon')" data-i18n-aria="al_pick_afternoon" aria-label="Escolher atividade"></select>
-        </div>
+        <details class="pickmore" id="more-afternoon">
+          <summary data-i18n="pick_other">Escolher outra atividade</summary>
+          <div class="orpick">
+            <select id="pick-afternoon" onchange="pickFromList('afternoon')" data-i18n-aria="al_pick_afternoon" aria-label="Escolher atividade"></select>
+          </div>
+        </details>
       </div>
       <div class="winblock win-bedtime">
         <div class="winhead">
@@ -86,9 +92,12 @@
           <button class="startbtn" onclick="startSession('bedtime')">▶&nbsp;<span data-i18n="btn_start">Iniciar</span></button>
           <button class="swapbtn" onclick="swapPlan('bedtime')">↻ <span data-i18n="btn_swap">Trocar</span></button>
         </div>
-        <div class="orpick">
-          <select id="pick-bedtime" onchange="pickFromList('bedtime')" data-i18n-aria="al_pick_bedtime" aria-label="Escolher atividade"></select>
-        </div>
+        <details class="pickmore" id="more-bedtime">
+          <summary data-i18n="pick_other">Escolher outra atividade</summary>
+          <div class="orpick">
+            <select id="pick-bedtime" onchange="pickFromList('bedtime')" data-i18n-aria="al_pick_bedtime" aria-label="Escolher atividade"></select>
+          </div>
+        </details>
       </div>
       </div>
       <button type="button" class="restbtn" onclick="markRestDay()">🌙 <span data-i18n="btn_rest">Hoje não é um bom momento</span></button>

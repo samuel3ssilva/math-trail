@@ -8,7 +8,7 @@ import { defaultState, getLevel, applyLog, replayState, rewardObservation,
 import { localDateKey, sessionDayKey, addDays, fmtElapsed, finishSession } from './time.mjs';
 import { makeRepo, migrateStore, importBackup, buildExport, appendLog, SCHEMA_VERSION } from './storage.mjs';
 import { I18N } from './i18n.mjs';
-import { logTimestampFor, pendingRestore, canStartSession, discardPending } from './session.mjs';
+import { logTimestampFor, pendingRestore, canStartSession, discardPending, promotedWindow } from './session.mjs';
 import { generateDemoData, DEMO_PROFILE } from './demo.mjs';
 
 // The app assumes common household manipulatives (interlocking cubes, small toy
@@ -81,7 +81,13 @@ function buildPlanPickers(){
   const today=localDateKey();
   const todayLogs=getLogs().filter(l=>sessionDayKey(l)===today);
   const plan=getDailyPlan();
+  // One window carries the composition; the others stay available but quiet.
+  const promoted=promotedWindow(new Date().getHours(), todayLogs.map(l=>l.window));
   Object.keys(WINDOWS).forEach(winKey=>{
+    const block=document.getElementById('plan-'+winKey)?.closest('.winblock');
+    if(block) block.classList.toggle('is-now', winKey===promoted);
+    const more=document.getElementById('more-'+winKey);
+    if(more) more.open = (winKey===promoted);
     const chip=document.getElementById('done-'+winKey);
     if(chip){
       const n=todayLogs.filter(l=>l.window===winKey).length;
