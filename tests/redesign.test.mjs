@@ -34,6 +34,25 @@ test('no grading language: percent signs and streak wording stay out of stat str
   }
 });
 
+test('evaluative language is banned from EVERY visible interface string', () => {
+  // Engine internals may stay technical; the parent-facing dictionary may not.
+  const banned = [
+    /dominad/i, /mastered/i,
+    /sessões fortes/i, /strong session/i,
+    /subiu de nível/i, /level up/i,
+    /voltou para o nível/i, /stepped down/i,
+    /caminho até o 10/i, /path to 10/i,
+    /\bfracasso\b/i, /\bfailure\b/i
+  ];
+  for (const lang of ['pt', 'en']){
+    for (const [key, value] of Object.entries(I18N[lang])){
+      for (const rx of banned){
+        assert.ok(!rx.test(String(value)), `${lang}.${key} contains banned wording (${rx}): "${value}"`);
+      }
+    }
+  }
+});
+
 test('optional-opportunity framing is explicit in the plan copy', () => {
   assert.match(I18N.pt.plan_sub, /nenhuma/i, 'PT copy must say choosing none is fine');
   assert.match(I18N.en.plan_sub, /none/i, 'EN copy must say choosing none is fine');
