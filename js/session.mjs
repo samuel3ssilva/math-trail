@@ -7,6 +7,7 @@
 // saving it at 00:10 must still file it under the day it happened (P0-1).
 
 import { ACTIVITIES, WINDOWS } from './activities.mjs';
+import { windowForHour } from './time.mjs';
 
 // Derived from the canonical catalog rather than re-typed, and named uniquely:
 // the standalone bundle concatenates every module into one scope.
@@ -96,4 +97,25 @@ export function reconcilePendingSession(backupPending, localPending){
   if (!check.ok) return { action:'reject', reason: check.reason };
   if (localPending) return { action:'conflict', reason:'local_pending_kept', pending: check.pending };
   return { action:'restore', pending: check.pending };
+}
+
+/**
+ * Which window the plan gives visual weight to. The clock's window, unless it
+ * has already been done today — then the next one still open. Purely about
+ * emphasis: all three stay available, and the suggestions themselves are
+ * untouched (the adaptive engine owns those).
+ *
+ * @param {number} hour 0–23 local hour
+ * @param {string[]} doneWindows windows already logged today
+ * @returns {string} the window to promote
+ */
+export function promotedWindow(hour, doneWindows = []){
+  const done = new Set(doneWindows);
+  const order = Object.keys(WINDOWS);
+  const start = order.indexOf(windowForHour(hour));
+  for (let i = 0; i < order.length; i++){
+    const w = order[(start + i) % order.length];
+    if (!done.has(w)) return w;
+  }
+  return order[start]; // everything done — keep the clock's window promoted
 }

@@ -60,3 +60,14 @@ export function fmtElapsed(startIso, now = new Date()){
   const m = Math.floor(s / 60), r = s % 60;
   return String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
 }
+
+/**
+ * Which daily window the clock is currently in. Presentation only: it decides
+ * which window the plan promotes visually, never which activity is suggested.
+ * @param {number} hour 0–23 local hour
+ */
+export function windowForHour(hour){
+  if (hour >= 5 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 18) return 'afternoon';
+  return 'bedtime';
+}

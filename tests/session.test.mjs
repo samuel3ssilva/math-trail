@@ -9,7 +9,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { logTimestampFor, pendingRestore, canStartSession, discardPending,
-         validatePendingSession, reconcilePendingSession } from '../js/session.mjs';
+         validatePendingSession, reconcilePendingSession, promotedWindow } from '../js/session.mjs';
+import { windowForHour } from '../js/time.mjs';
 import { localDateKey } from '../js/time.mjs';
 
 const pending = (over = {}) => Object.assign({
@@ -157,4 +158,36 @@ test('an invalid pending session in a backup is reported, not silently dropped',
   const r = reconcilePendingSession(pending({ activity: 'ghost' }), null);
   assert.equal(r.action, 'reject');
   assert.equal(r.reason, 'pending_unknown_activity');
+});
+
+// ── which window the plan gives visual weight to (visual-polish round) ──
+// Emphasis only: every window keeps its suggestion and its actions.
+
+test('the clock maps to the window a parent would be living in', () => {
+  assert.equal(windowForHour(7), 'morning');
+  assert.equal(windowForHour(11), 'morning');
+  assert.equal(windowForHour(12), 'afternoon');
+  assert.equal(windowForHour(17), 'afternoon');
+  assert.equal(windowForHour(20), 'bedtime');
+  assert.equal(windowForHour(2), 'bedtime', 'the small hours still belong to bedtime');
+});
+
+test('the promoted window is the one the clock is in', () => {
+  assert.equal(promotedWindow(9, []), 'morning');
+  assert.equal(promotedWindow(14, []), 'afternoon');
+  assert.equal(promotedWindow(21, []), 'bedtime');
+});
+
+test('a window already done today hands the emphasis to the next one still open', () => {
+  assert.equal(promotedWindow(9, ['morning']), 'afternoon');
+  assert.equal(promotedWindow(9, ['morning', 'afternoon']), 'bedtime');
+  assert.equal(promotedWindow(14, ['afternoon']), 'bedtime');
+});
+
+test('the search wraps around rather than falling off the end of the day', () => {
+  assert.equal(promotedWindow(21, ['bedtime']), 'morning');
+});
+
+test('with every window done the clock keeps the emphasis — nothing is hidden', () => {
+  assert.equal(promotedWindow(14, ['morning', 'afternoon', 'bedtime']), 'afternoon');
 });
