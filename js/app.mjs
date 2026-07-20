@@ -40,13 +40,22 @@ v_excited:'Excited',v_neutral:'Neutral',v_resisted:'Resisted',
 v_too_easy:'Too easy',v_just_right:'Just right',v_too_hard:'Too hard',
 v_intrinsic:'Play itself',v_connection:'Connection',v_extrinsic:'Treat',
 btn_save:'Save session',btn_update:'Update session',
-st_trail:'Skill Trail',st_trail_sub:'Where she is on the path to 10',
+st_trail:'Experience trail',st_trail_sub:'Doorways into early math — pace varies from child to child, and this is not an assessment.',
+ms_count5:'Counting 1–5',ms_sub34:'Spotting 3–4 at a glance',ms_count10:'Counting 6–10, one by one',
+ms_sub56:'Spotting 5–6 at a glance',ms_oml:'One more / one less',ms_frames:'Five & ten frames · counting on',
+ms_ppw:'Part-part-whole up to 6',ms_compare:'More · fewer · equal',ms_stories:'Joining & taking-away stories',
+ms_patshapes:'Patterns & shapes',
+msd_count5:'One-to-one, steady',msd_sub34:'Sees small groups instantly',msd_count10:'No skips, no double-counts',
+msd_sub56:'Dice faces & clusters at a glance',msd_oml:'Predicts without recounting',msd_frames:'6–9 as "5 and some more"',
+msd_ppw:'Numbers hide inside numbers',msd_compare:'Including equal — and zero',msd_stories:'Acting out change with objects',
+msd_patshapes:'The variety track',
 st_adaptive:'How suggestions adapt',st_goal:'Goal Progress',st_mood:'Mood over time',
 set_title:'Settings',set_name:"Child's name",set_birth:'Birth month',
 set_chapter:'Current Kate Snow chapter (boosts matching activities)',
 ch0:'No chapter focus',ch1:'Ch 1 · Counting & number concept',ch4:'Ch 4 · Numbers 6–10',ch5:'Ch 5 · Written numerals 0–10',ch6:'Ch 6 · Comparing quantities',ch7:'Ch 7 · Addition & subtraction stories',
 set_save:'Save',set_close:'Close',set_backup:'Data backup',set_export:'Export JSON',set_import:'Import JSON',set_clear:'Delete all sessions',
-wc_sessions:'Sessions · 7d',wc_streak:'Day streak',wc_excited:'Excited',wc_focus:'Now building',
+wc_sessions:'Sessions · 7d',wc_streak:'Day streak',wc_excited:'Excited',wc_focus:'Exploring now',
+hs_exc_n:'excited sessions',hs_exc_1:'excited session',
 chip_normal:'Normal',chip_story:'Story',chip_cool:'Cool-Down',
 banner_story:'Story Mode ON — {n} session(s) left. Scripts reframed as adventures!',
 banner_cool:'Cool-Down: Part-Part-Whole paused ~{h}h. Serving other skills only.',
@@ -74,9 +83,9 @@ as_treat_off:'{t} treat / {o} other sessions: no notable difference so far.',
 as_treat_low:'Not enough sessions to compare rewards yet ({t} treat / {o} other — needs 5 of each).',
 obs_disclaimer:'Describes this log only. Not a diagnosis, recommendation or causal claim.',
 as_lvl:'Level adjustments',
-gp_mastered:'Mastered',gp_prog:'Progressing',gp_notstarted:'Not started',gp_building:'Building',gp_strong:'strong',
+gp_mastered:'Explored',gp_prog:'Progressing',gp_notstarted:'Not yet visited',gp_building:'Building',gp_strong:'good',
 mood_empty:'Log sessions to see the mood line.',
-stat_total:'Total sessions',stat_excited:'Excited rate',stat_full:'Full completion',stat_miles:'Trail milestones',
+stat_total:'Total sessions',stat_excited:'Excited sessions',stat_full:'Full sessions',stat_miles:'Trail stops explored',
 toast_settings:'Settings saved!',toast_export:'Backup exported!',
 confirm_import:'Import {n} sessions? This replaces current data.',toast_import:'Backup imported!',
 alert_badfile:'This file is not a valid Math Trail backup.',
@@ -126,13 +135,22 @@ v_excited:'Animada',v_neutral:'Neutra',v_resisted:'Resistiu',
 v_too_easy:'Muito fácil',v_just_right:'Na medida',v_too_hard:'Muito difícil',
 v_intrinsic:'Brincadeira',v_connection:'Conexão',v_extrinsic:'Docinho',
 btn_save:'Salvar sessão',btn_update:'Atualizar sessão',
-st_trail:'Trilha de habilidades',st_trail_sub:'Onde ela está no caminho até o 10',
+st_trail:'Trilha de experiências',st_trail_sub:'Portas de entrada da matemática — o ritmo varia de criança para criança, e isto não é uma avaliação.',
+ms_count5:'Contagem 1–5',ms_sub34:'Reconhecer 3–4 de relance',ms_count10:'Contagem 6–10, um a um',
+ms_sub56:'Reconhecer 5–6 de relance',ms_oml:'Um a mais / um a menos',ms_frames:'Molduras de 5 e 10 · contar a partir de',
+ms_ppw:'Parte-parte-todo até 6',ms_compare:'Mais · menos · igual',ms_stories:'Histórias de juntar e tirar',
+ms_patshapes:'Padrões e formas',
+msd_count5:'Um a um, com segurança',msd_sub34:'Vê grupos pequenos na hora',msd_count10:'Sem pular nem repetir',
+msd_sub56:'Faces de dado e grupinhos de relance',msd_oml:'Antecipa sem recontar',msd_frames:'6–9 como "5 e mais alguns"',
+msd_ppw:'Números escondidos dentro de números',msd_compare:'Incluindo igual — e zero',msd_stories:'Encenando mudanças com objetos',
+msd_patshapes:'A trilha da variedade',
 st_adaptive:'Como as sugestões se adaptam',st_goal:'Experiências em construção',st_mood:'Humor ao longo do tempo',
 set_title:'Configurações',set_name:'Nome da criança',set_birth:'Mês de nascimento',
 set_chapter:'Capítulo atual da Kate Snow (prioriza atividades do capítulo)',
 ch0:'Sem foco de capítulo',ch1:'Cap. 1 · Contagem e conceito de número',ch4:'Cap. 4 · Números 6–10',ch5:'Cap. 5 · Numerais escritos 0–10',ch6:'Cap. 6 · Comparando quantidades',ch7:'Cap. 7 · Histórias de adição e subtração',
 set_save:'Salvar',set_close:'Fechar',set_backup:'Backup de dados',set_export:'Exportar JSON',set_import:'Importar JSON',set_clear:'Apagar todas as sessões',
-wc_sessions:'Sessões · 7d',wc_streak:'Dias seguidos',wc_excited:'Animada',wc_focus:'Construindo agora',
+wc_sessions:'Sessões · 7d',wc_streak:'Dias seguidos',wc_excited:'Animada',wc_focus:'Explorando agora',
+hs_exc_n:'sessões animadas',hs_exc_1:'sessão animada',
 chip_normal:'Normal',chip_story:'História',chip_cool:'Pausa',
 banner_story:'Modo História ATIVO — {n} sessão(ões) restante(s). Roteiros viram aventuras!',
 banner_cool:'Pausa: Parte-Parte-Todo pausado por ~{h}h. Sugerindo outras habilidades.',
@@ -160,9 +178,9 @@ as_treat_off:'{t} sessões com docinho / {o} sem: nenhuma diferença notável at
 as_treat_low:'Ainda não há sessões suficientes para comparar recompensas ({t} com docinho / {o} sem — precisa de 5 de cada).',
 obs_disclaimer:'Descreve apenas este registro. Não é diagnóstico, recomendação nem relação causal.',
 as_lvl:'Ajustes de nível',
-gp_mastered:'Dominado',gp_prog:'Progredindo',gp_notstarted:'Não iniciado',gp_building:'Construindo',gp_strong:'fortes',
+gp_mastered:'Explorado',gp_prog:'Progredindo',gp_notstarted:'Ainda não visitado',gp_building:'Construindo',gp_strong:'boas',
 mood_empty:'Registre sessões para ver a linha de humor.',
-stat_total:'Sessões totais',stat_excited:'Taxa de animação',stat_full:'Sessões completas',stat_miles:'Marcos da trilha',
+stat_total:'Sessões totais',stat_excited:'Sessões animadas',stat_full:'Sessões completas',stat_miles:'Trilhos explorados',
 toast_settings:'Configurações salvas!',toast_export:'Backup exportado!',
 confirm_import:'Importar {n} sessões? Isso substitui os dados atuais.',toast_import:'Backup importado!',
 alert_badfile:'Este arquivo não é um backup válido do Math Trail.',
@@ -193,6 +211,9 @@ imp_fail:'A importação falhou — seus dados anteriores foram restaurados auto
 }
 };
 function t(k){ const d=I18N[LANG]||I18N.en; return (d[k]!==undefined?d[k]:(I18N.en[k]!==undefined?I18N.en[k]:k)); }
+// Milestones carry English fallbacks in data; the interface prefers i18n keys.
+const msLabel=m=>{ const v=t('ms_'+m.id); return v!=='ms_'+m.id?v:m.label; };
+const msDetail=m=>{ const v=t('msd_'+m.id); return v!=='msd_'+m.id?v:m.detail; };
 function setLang(l){ LANG=l; repo.saveLang(l); applyLang(); }
 function applyLang(){
   document.documentElement.lang=LANG;
@@ -617,7 +638,7 @@ function renderLogList(){
           <span class="pill" style="background:var(--paper);color:var(--ink-soft)">${EASE_ICON[l.ease]||''} ${t('v_'+l.ease)}</span>
           <span class="pill" style="${l.reward==='extrinsic'?'background:var(--c-patterns-bg);color:var(--c-patterns)':'background:var(--brand-bg);color:var(--brand-deep)'}">${l.reward==='extrinsic'?'🍬':l.reward==='connection'?'🤗':'💚'} ${t('v_'+l.reward)}</span>
         </div>
-        ${l.notes?`<p style="font-size:12.5px;color:var(--ink-faint);font-style:italic;margin-top:7px">"${l.notes}"</p>`:''}
+        ${l.notes?`<p class="sessnote">“${l.notes}”</p>`:''}
       </div>`;
     }).join('');
 
@@ -701,10 +722,11 @@ function renderWeekCard(){
     return `<div class="wday${k===todayKey?' today':''}"><span class="cube big${n?' on':''}${rest?' rest':''}" title="${rest?t('rest_chip'):''}">${n||(rest?'☾':'')}</span><span class="wl">${wl}</span></div>`;
   }).join('');
 
+  // Counts, not percentages or streaks — rhythm is visible in the strip;
+  // numbers here describe, they don't grade (audit V4).
   const parts=[];
   parts.push(`<b>${week.length}</b> ${week.length===1?t('session'):t('sessions')} ${t('hs_week')}`);
-  if(streak>1) parts.push(`<b>${streak}</b> ${t('hs_days')}`);
-  if(week.length) parts.push(`<b>${Math.round(exc/week.length*100)}%</b> ${t('hs_excited')}`);
+  if(exc) parts.push(`<b>${exc}</b> ${exc===1?t('hs_exc_1'):t('hs_exc_n')}`);
   const statline=week.length?parts.join(' &nbsp;·&nbsp; '):t('hs_empty');
 
   const target=focus.target||0;
@@ -722,7 +744,7 @@ function renderWeekCard(){
       </div>
       <div class="focusline">
         <span class="eyebrow" style="color:var(--brand-deep)">${t('wc_focus')}</span>
-        <div class="fl">${focus.label}</div>
+        <div class="fl">${msLabel(focus)}</div>
         <div class="cubes">${focusCubes}</div>
       </div>
     </div>`;
@@ -738,11 +760,11 @@ function renderAnalytics(){
   let nowFound=false;
   document.getElementById('skillTrail').innerHTML=MILESTONES.map(m=>{
     const p=milestoneProgress(m,logs);
-    let cls='next', icon='', extra=m.detail;
-    if(p.done){ cls='done'; icon='✓'; extra=m.pre?m.detail+' · '+t('ms_calibrated'):t('ms_mastered')+' — '+p.good+' '+t('ms_strong'); }
-    else if(!nowFound){ cls='now'; icon='🦕'; nowFound=true; extra=`${p.good}/${m.target} ${t('ms_strong')} · ${m.detail}`; }
+    let cls='next', icon='', extra=msDetail(m);
+    if(p.done){ cls='done'; icon='✓'; extra=m.pre?msDetail(m)+' · '+t('ms_calibrated'):t('ms_mastered')+' — '+p.good+' '+t('ms_strong'); }
+    else if(!nowFound){ cls='now'; icon='🦕'; nowFound=true; extra=`${p.good}/${m.target} ${t('ms_strong')} · ${msDetail(m)}`; }
     return `<div class="tstop ${cls}"><span class="dot">${icon}</span>
-      <div class="tl">${m.label}</div><div class="td">${extra}</div></div>`;
+      <div class="tl">${msLabel(m)}</div><div class="td">${extra}</div></div>`;
   }).join('');
 
   // Adaptive state
@@ -779,7 +801,7 @@ function renderAnalytics(){
     const color=p.done?'var(--brand-deep)':p.sessions===0?'var(--ink-faint)':'var(--dawn)';
     const cubes=[...Array(m.target)].map((_,i)=>`<span class="cube${i<Math.min(p.good,m.target)?' on':''}"></span>`).join('');
     return `<div class="goalrow">
-      <div class="goaltop"><span class="gl">${m.label}</span><span class="gb" style="color:${color}">${badge}</span></div>
+      <div class="goaltop"><span class="gl">${msLabel(m)}</span><span class="gb" style="color:${color}">${badge}</span></div>
       <div class="cubes">${cubes}<span class="ct">${p.good}/${m.target} ${t('gp_strong')}</span></div>
       <div class="gd">${p.sessions} ${p.sessions===1?t('session'):t('sessions')}</div>
     </div>`;
@@ -809,15 +831,15 @@ function renderAnalytics(){
     </svg>`;
   }
 
-  // Stat cells
+  // Stat cells — plain counts; percentages read like grades on tiny samples
   const total=logs.length;
-  const excPct=total?Math.round(logs.filter(l=>l.engagement==='excited').length/total*100):0;
-  const fullPct=total?Math.round(logs.filter(l=>l.completion==='full').length/total*100):0;
+  const excN=logs.filter(l=>l.engagement==='excited').length;
+  const fullN=logs.filter(l=>l.completion==='full').length;
   const doneMs=MILESTONES.filter(m=>milestoneProgress(m,logs).done).length;
   document.getElementById('statsGrid').innerHTML=[
     {v:total,k:t('stat_total'),c:'#1E5B41',bg:'#E4F0E8',b:'#CBE4D4'},
-    {v:excPct+'%',k:t('stat_excited'),c:'#96660F',bg:'#FBF0DC',b:'#F1DFBE'},
-    {v:fullPct+'%',k:t('stat_full'),c:'#2E6FBF',bg:'#E7F0FA',b:'#CFE0F2'},
+    {v:excN,k:t('stat_excited'),c:'#96660F',bg:'#FBF0DC',b:'#F1DFBE'},
+    {v:fullN,k:t('stat_full'),c:'#2E6FBF',bg:'#E7F0FA',b:'#CFE0F2'},
     {v:doneMs+'/'+MILESTONES.length,k:t('stat_miles'),c:'#54499E',bg:'#ECE9F7',b:'#D8D3EE'}
   ].map(s=>`<div class="cell" style="background:${s.bg};border-color:${s.b}">
       <div class="v" style="color:${s.c}">${s.v}</div>
