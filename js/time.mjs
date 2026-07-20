@@ -31,6 +31,14 @@ export function isSameLocalDay(a, b){
   return localDateKey(a) === localDateKey(b);
 }
 
+/**
+ * Whole minutes between session start and end, clamped to [1, maxMins].
+ * A forgotten timer must never record an absurd duration.
+ */
+export function clampSessionMinutes(startIso, endMs, maxMins = 120){
+  return Math.min(maxMins, Math.max(1, Math.round((endMs - new Date(startIso).getTime()) / 60000)));
+}
+
 /** mm:ss elapsed between two instants (for the session timer display). */
 export function fmtElapsed(startIso, now = new Date()){
   const s = Math.max(0, Math.floor((now - new Date(startIso)) / 1000));
