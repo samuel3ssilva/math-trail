@@ -8,7 +8,7 @@ import { readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
 const SHIP = [
   'index.html', 'styles.css', 'manifest.webmanifest', 'sw.js',
   'js/app.mjs', 'js/engine.mjs', 'js/activities.mjs', 'js/time.mjs',
-  'js/storage.mjs', 'js/demo.mjs', 'js/i18n.mjs',
+  'js/storage.mjs', 'js/demo.mjs', 'js/i18n.mjs', 'js/session.mjs',
   'icons/icon-192.png', 'icons/icon-512.png'
 ];
 
@@ -28,6 +28,7 @@ const stripModule = (src) => src
 const js = [
   await readFile('js/activities.mjs', 'utf8'),
   await readFile('js/time.mjs', 'utf8'),
+  await readFile('js/session.mjs', 'utf8'),
   await readFile('js/storage.mjs', 'utf8'),
   await readFile('js/engine.mjs', 'utf8'),
   await readFile('js/i18n.mjs', 'utf8'),

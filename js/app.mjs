@@ -8,6 +8,7 @@ import { defaultState, getLevel, applyLog, replayState, rewardObservation,
 import { localDateKey, sessionDayKey, addDays, fmtElapsed, finishSession } from './time.mjs';
 import { makeRepo, migrateStore, importBackup, buildExport, appendLog, SCHEMA_VERSION } from './storage.mjs';
 import { I18N } from './i18n.mjs';
+import { logTimestampFor, pendingRestore, canStartSession, discardPending } from './session.mjs';
 import { generateDemoData, DEMO_PROFILE } from './demo.mjs';
 
 // The app assumes common household manipulatives (interlocking cubes, small toy
@@ -210,27 +211,29 @@ function renderPendingNote(){
   const btn=document.createElement('button');
   btn.type='button';
   btn.textContent=t('pending_discard');
-  btn.addEventListener('click', discardPending);
+  btn.addEventListener('click', discardPendingSession);
   pn.append(msg, btn);
   pn.style.display='block';
 }
-function discardPending(){
-  if(!confirm(t('pending_discard_confirm'))) return;
+function discardPendingSession(){
+  // The confirmation is the human step; the controller owns the rule.
+  const d=discardPending(confirm(t('pending_discard_confirm')));
+  if(!d.clear) return;
   repo.setPending(null);
   renderPendingNote(); buildPlanPickers();
 }
 function restorePendingIntoForm(){
-  const p=repo.getPending(); if(!p) return false;
+  const r=pendingRestore(repo.getPending()); if(!r) return false;
   const winSel=document.getElementById('log-window');
-  if(winSel && ['morning','afternoon','bedtime'].includes(p.window)) winSel.value=p.window;
+  if(winSel && WINDOWS[r.window]) winSel.value=r.window;
   const actSel=document.getElementById('log-activity');
-  if(actSel && ACTIVITIES[p.activity]) actSel.value=p.activity;
+  if(actSel && ACTIVITIES[r.activity]) actSel.value=r.activity;
   renderPendingNote();
   return true;
 }
 
 function startSession(winKey){
-  if(repo.getPending()){
+  if(!canStartSession(repo.getPending()).ok){
     // A finished session is waiting — resolve it before starting another.
     restorePendingIntoForm(); showTab('log'); showToast(t('sess_pending'));
     return;
@@ -372,7 +375,10 @@ function saveLog(e){
     cancelEdit();
     showToast(t('toast_updated'));
   } else {
-    entry.id=Date.now(); entry.timestamp=new Date().toISOString();
+    // The log belongs to the instant the session ENDED, not to the moment the
+    // parent got around to saving it — a session finished at 23:50 and saved at
+    // 00:10 stays on the day it happened. Manual entries use the clock.
+    entry.id=Date.now(); entry.timestamp=logTimestampFor(pending, new Date());
     const ns=applyLog(state, entry, logs);
     // appendLog clears the pending session only after a successful write;
     // on failure it restores the previous logs and keeps the pending session.
