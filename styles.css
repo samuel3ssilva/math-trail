@@ -38,6 +38,30 @@
   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:28px;
   /* focus ring token — one ring everywhere */
   --ring:3px solid var(--brand);
+
+  /* ── layout tokens (visual polish round) ──────────────────────────
+     Semantic, not component-bound. Three spacing tiers the eye can read:
+     items in a group → groups in a section → sections. Everything below
+     picks from these; component rules stop inventing their own numbers. */
+  --content-main:620px;        /* the reading column — the plan and the form live here */
+  --content-wide:1080px;       /* the outer bound on large screens */
+  --space-page-inline:16px;    /* page gutter */
+  --space-item:8px;            /* between items of one group */
+  --space-group:14px;          /* between groups inside a section */
+  --space-section:22px;        /* between sections */
+  --space-card:18px;           /* card padding */
+  --space-card-tight:14px;     /* padding for compact/secondary cards */
+  --control-h:48px;            /* inputs and primary actions */
+  --control-h-sm:40px;         /* compact controls; hit area padded to 44 */
+  --hit-min:44px;              /* never smaller, however light it looks */
+
+  /* surface hierarchy — page sits under raised, sunken recedes */
+  --surface-page:var(--paper);
+  --surface-raised:var(--card);
+  --surface-sunken:#F2EDE2;
+  --border-subtle:var(--line-soft);
+  --shadow-raised:0 1px 2px rgba(38,49,43,.05);
+  --shadow-lifted:0 6px 20px rgba(38,49,43,.10);
 }
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px}
@@ -48,14 +72,17 @@ a{color:var(--brand)}a:hover{color:var(--brand-deep)}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
 :focus-visible{outline:var(--ring);outline-offset:2px;border-radius:6px}
 .hidden{display:none!important}
-.wrap{max-width:560px;margin:0 auto;padding:0 16px calc(96px + env(safe-area-inset-bottom))}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;margin-bottom:14px;box-shadow:0 1px 2px rgba(38,49,43,.05)}
+.wrap{max-width:var(--content-main);margin:0 auto;padding:0 var(--space-page-inline) calc(96px + env(safe-area-inset-bottom))}
+.section{margin-bottom:var(--space-section)}
+.section>h2{padding:0 var(--space-card-tight)}
+.section>.sub{padding:0 var(--space-card-tight);margin-bottom:var(--space-group)}
+.card{background:var(--surface-raised);border:1px solid var(--border-subtle);border-radius:var(--r-lg);padding:var(--space-card);margin-bottom:var(--space-section);box-shadow:var(--shadow-raised)}
 h1{font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:1.15}
-h2{font-family:var(--font-display);font-size:16.5px;font-weight:700;letter-spacing:-.2px;margin-bottom:12px}
+h2{font-family:var(--font-display);font-size:16.5px;font-weight:700;letter-spacing:-.2px;margin-bottom:var(--space-item)}
 h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.2px}
 .sub{font-size:13px;color:var(--ink-faint);font-weight:600;line-height:1.45}
 .eyebrow{font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--ink-faint)}
-.pill{display:inline-flex;align-items:center;gap:4px;padding:4px 11px;border-radius:99px;font-size:12px;font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:700}
 .badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;display:inline-block}
 .fade{animation:fadeIn .35s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -64,7 +91,8 @@ h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.2px}
 @media (prefers-reduced-motion:reduce){.fade,.pulse{animation:none}*{transition:none!important}}
 
 /* ── header ─────────────────────────────────────── */
-.header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:20px 2px 16px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:var(--space-section) var(--space-card-tight) var(--space-group)}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
 .logo{width:46px;height:46px;border-radius:16px;background:var(--brand-bg);border:1.5px solid var(--brand-line);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
 .hactions{display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -98,11 +126,14 @@ h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.2px}
 .nav button:active{transform:scale(.95)}
 
 /* ── plan: session windows ──────────────────────── */
-.winblock{border-radius:var(--r-md);border:1.5px solid var(--wl,var(--line));background:var(--wb,#fff);margin-bottom:12px;overflow:hidden}
+/* One tinted surface per window — the activity inside is NOT a second card.
+   Secondary windows stay compact; the promoted one carries the composition. */
+.winblock{border-radius:var(--r-md);border:1px solid var(--wl,var(--line));background:var(--wb,#fff);
+  margin-bottom:var(--space-item);overflow:hidden;display:flex;flex-direction:column}
 .win-morning{--wc:var(--dawn);--wb:var(--dawn-bg);--wl:var(--dawn-line)}
 .win-afternoon{--wc:var(--day);--wb:var(--day-bg);--wl:var(--day-line)}
 .win-bedtime{--wc:var(--dusk);--wb:var(--dusk-bg);--wl:var(--dusk-line)}
-.winhead{display:flex;align-items:center;gap:10px;padding:12px 14px 10px}
+.winhead{display:flex;align-items:center;gap:10px;padding:var(--space-card-tight) var(--space-card-tight) var(--space-item)}
 .winhead .wicon{font-size:20px;flex-shrink:0}
 .winhead .wtxt{min-width:0;flex:1}
 .winhead .t{display:block;font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--ink)}
@@ -126,19 +157,23 @@ h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.2px}
 .stepnum{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--brand-bg);color:var(--brand-deep);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
 .step span:last-child{font-size:14px;font-weight:600;color:var(--ink-soft);line-height:1.55}
 .actrow{display:flex;gap:8px}
-.primary{flex:1;padding:14px;min-height:50px;border-radius:13px;font-weight:800;color:#fff;font-size:15px;background:var(--brand);box-shadow:inset 0 -3px 0 rgba(0,0,0,.16),0 2px 8px rgba(46,125,91,.22)}
+.primary{flex:1;padding:14px;min-height:var(--control-h);border-radius:13px;font-weight:800;color:#fff;font-size:15px;
+  background:var(--brand);box-shadow:inset 0 -3px 0 rgba(0,0,0,.16),0 2px 8px rgba(46,125,91,.22)}
+/* The save button closes the form: full width on touch, and it never floats
+   away from the last question. */
+#saveBtn{width:100%;margin-top:var(--space-group)}
 .primary:active{transform:scale(.97)}
 .ghostbtn{flex-shrink:0;padding:0 16px;min-height:50px;border-radius:13px;border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft);font-weight:800;font-size:13.5px}
 .ghostbtn:active{background:var(--paper)}
 
 /* ── form ───────────────────────────────────────── */
-label.f,legend.f{display:block;font-size:var(--fs-2xs);font-weight:800;color:var(--ink-faint);text-transform:uppercase;letter-spacing:1px;margin:var(--sp-4) 0 7px}
+label.f,legend.f{display:block;font-size:var(--fs-2xs);font-weight:800;color:var(--ink-faint);text-transform:uppercase;letter-spacing:1px;margin:var(--space-group) 0 var(--space-item)}
 fieldset{border:none;margin:0;padding:0}
-select,input[type=text],input[type=month]{width:100%;border-radius:12px;border:1.5px solid var(--line);background:#fff;padding:12px 13px;min-height:48px;font-size:15px;font-weight:600;font-family:inherit;color:var(--ink);outline:none;appearance:none;-webkit-appearance:none;
+select,input[type=text],input[type=month]{width:100%;border-radius:12px;border:1.5px solid var(--line);background:#fff;padding:12px 13px;min-height:var(--control-h);font-size:15px;font-weight:600;font-family:inherit;color:var(--ink);outline:none;appearance:none;-webkit-appearance:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2354615A' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 input[type=text],input[type=month]{background-image:none}
 select:focus,input:focus{border-color:var(--brand)}
-.radios{display:grid;gap:8px}
+.radios{display:grid;gap:var(--space-item)}
 .radios.c3{grid-template-columns:1fr 1fr 1fr}
 .radios.c2{grid-template-columns:1fr 1fr}
 .radios label{cursor:pointer}
@@ -153,22 +188,30 @@ select:focus,input:focus{border-color:var(--brand)}
 .editnote button{color:var(--amber-ink);font-weight:800;text-decoration:underline;font-size:12.5px}
 
 /* ── history ────────────────────────────────────── */
-.sesscard{background:#fff;border-radius:12px;padding:12px 14px;border:1px solid var(--line-soft);border-left:4px solid var(--cat,var(--line));margin-bottom:8px}
+/* A session is a row on a day's thread — the day card is the only surface,
+   the session itself is marked by its category rule, not by another box. */
+.sesscard{background:none;border:none;border-left:2.5px solid var(--cat,var(--line));border-radius:0;
+  padding:var(--space-item) 0 var(--space-item) var(--space-group);margin-bottom:var(--space-item)}
+.sesscard:last-child{margin-bottom:0}
 .sess-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .sessmeta{font-size:12px;font-weight:800;color:var(--ink-faint)}
-.sessacts{display:flex;gap:6px}
-.sessname{font-family:var(--font-display);font-weight:700;font-size:15px;margin:3px 0 7px}
-.pills{display:flex;flex-wrap:wrap;gap:5px}
-.iconbtn{font-size:14px;min-width:38px;min-height:38px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:var(--paper);border:1px solid var(--line-soft);color:var(--ink-soft)}
-.iconbtn.del{background:var(--danger-bg);color:var(--danger);border-color:#F2D8D2}
-.sessteach{margin-bottom:8px;font-size:var(--fs-2xs);font-weight:800}
+.sessacts{display:flex;gap:2px;flex-shrink:0}
+.sessname{font-family:var(--font-display);font-weight:700;font-size:14.5px;margin:1px 0 3px}
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:var(--space-item)}
+.iconbtn{font-size:13px;min-width:var(--hit-min);min-height:var(--hit-min);display:inline-flex;align-items:center;justify-content:center;
+  border-radius:10px;background:none;border:1px solid transparent;color:var(--ink-faint);opacity:.72}
+.iconbtn:hover,.iconbtn:focus-visible{opacity:1;background:var(--surface-sunken);border-color:var(--border-subtle)}
+.iconbtn.del{color:var(--danger)}
+.iconbtn.del:hover,.iconbtn.del:focus-visible{background:var(--danger-bg);border-color:#F2D8D2}
+.sessteach{font-size:var(--fs-2xs);font-weight:800}
 .tsep{color:var(--line)}
 .pill-soft{background:var(--paper);color:var(--ink-soft)}
 .pill-brand{background:var(--brand-bg);color:var(--brand-deep)}
 .pill-treat{background:var(--c-patterns-bg);color:var(--c-patterns)}
 /* Notes are the reflective gold of history — quoted, not buried (audit §history) */
-.sessnote{font-size:var(--fs-sm);color:var(--ink-soft);font-weight:600;margin-top:8px;padding:8px 12px;background:var(--paper);border-left:3px solid var(--brand-line);border-radius:0 8px 8px 0}
-.daytop{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.sessnote{font-size:var(--fs-sm);color:var(--ink-soft);font-weight:600;margin-top:var(--space-item);
+  padding:var(--space-item) var(--space-group);background:var(--surface-sunken);border-radius:8px;max-width:60ch}
+.daytop{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-group)}
 .daytop .dl{font-family:var(--font-display);font-weight:700;font-size:15px}
 .daytop .dc{font-size:12.5px;font-weight:700;color:var(--ink-faint)}
 
@@ -220,26 +263,35 @@ select:focus,input:focus{border-color:var(--brand)}
 /* ≤430px: the window header must wrap gracefully (audit V2) — the title
    never breaks mid-token; the state chip is what drops to its own line. */
 @media (max-width:430px){
-  .winhead{flex-wrap:wrap}
   .winhead .t{font-size:14px;white-space:nowrap}
-  .winhead .wtxt{flex:1 0 auto}
-  .winhead .donechip{order:3;margin-left:44px;margin-top:2px}
+  .winhead .wtxt{min-width:0;flex:1}
+  .winhead .d{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .donechip{font-size:10.5px;padding:3px 8px}
   .bphead h3{font-size:19px}
 }
 
 /* ── daily plan + active session ────────────────── */
-.planblock{display:block;width:calc(100% - 24px);text-align:left;background:#fff;border:1.5px solid var(--wl,var(--line));border-radius:12px;padding:11px 13px;margin:0 12px 10px;cursor:pointer}
+/* Flat by default: the tint already groups it. No border, no inner card. */
+.planblock{display:block;width:100%;text-align:left;background:none;border:none;border-radius:0;
+  padding:0 var(--space-card-tight) var(--space-item);cursor:pointer}
 .planblock:active{transform:scale(.99)}
 .planblock .pcat{display:block;font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.8px}
 .planblock .pname{display:block;font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--ink);margin:2px 0 3px}
 .planblock .pmeta{display:block;font-size:12px;font-weight:700;color:var(--ink-faint)}
-.actrow2{display:flex;gap:8px;padding:0 12px 10px}
+.actrow2{display:flex;gap:var(--space-item);padding:0 var(--space-card-tight) var(--space-item);margin-top:auto}
 /* ONE primary action color (audit V1): windows keep identity via card tint,
    icon and border — never via the main button. */
-.startbtn{flex:1;min-height:48px;border-radius:12px;background:var(--brand);color:#fff;font-weight:800;font-size:14px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.16)}
+.startbtn{flex:1;min-height:var(--hit-min);border-radius:12px;background:var(--brand);color:#fff;font-weight:800;font-size:14px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.16)}
 .startbtn:active{transform:scale(.97)}
-.swapbtn{flex-shrink:0;padding:0 14px;min-height:48px;border-radius:12px;border:1.5px solid var(--wl,var(--line));background:#fff;color:var(--wc,var(--ink-soft));font-weight:800;font-size:13px}
-.orpick{padding:0 12px 12px}
+.swapbtn{flex-shrink:0;padding:0 14px;min-height:var(--hit-min);border-radius:12px;border:1.5px solid var(--wl,var(--line));background:#fff;color:var(--wc,var(--ink-soft));font-weight:800;font-size:13px}
+.pickmore{padding:0 var(--space-card-tight) var(--space-card-tight)}
+.pickmore summary{list-style:none;cursor:pointer;display:flex;align-items:center;min-height:var(--hit-min);
+  font-size:var(--fs-xs);font-weight:800;color:var(--ink-faint)}
+.pickmore summary::-webkit-details-marker{display:none}
+.pickmore summary::before{content:'\25B8';margin-right:6px;transition:transform .2s}
+.pickmore[open] summary::before{transform:rotate(90deg)}
+.orpick{padding-top:var(--space-item)}
+.orpick select{min-height:var(--control-h-sm);font-size:var(--fs-sm)}
 .orpick select{width:100%}
 #sessionBar{position:sticky;top:8px;z-index:55}
 .sessionbar{display:flex;align-items:center;gap:10px;background:var(--brand-deep);color:#fff;border-radius:14px;padding:10px 14px;margin-bottom:12px;box-shadow:0 6px 18px rgba(30,91,65,.35)}
@@ -253,6 +305,22 @@ select:focus,input:focus{border-color:var(--brand)}
 .restbtn{width:100%;margin-top:2px;padding:12px;min-height:46px;border-radius:12px;border:1.5px dashed var(--line);background:none;color:var(--ink-faint);font-weight:700;font-size:13px}
 .restbtn:active{background:var(--paper)}
 
+/* ── plan emphasis: one window leads ────────────────
+   Secondary windows keep every capability, just less ink: the category
+   eyebrow and the "why" line belong to the one being proposed now. */
+.winblock:not(.is-now) .pcat,
+.winblock:not(.is-now) .pwhy{display:none}
+.winblock:not(.is-now) .planblock .pname{font-size:14.5px}
+.winblock:not(.is-now) .startbtn{background:none;color:var(--brand-deep);
+  border:1.5px solid var(--brand-line);box-shadow:none;font-size:13.5px}
+.winblock.is-now{background:var(--surface-raised);border-color:var(--wl,var(--line));
+  box-shadow:var(--shadow-raised)}
+.winblock.is-now .winhead{padding-bottom:var(--space-item)}
+.winblock.is-now .planblock{background:var(--wb,#fff);border-radius:var(--r-sm);
+  margin:0 var(--space-card-tight) var(--space-item);padding:var(--space-item) var(--space-item) 10px;width:auto}
+.winblock.is-now .planblock .pname{font-size:17px;margin:3px 0 4px}
+.winblock.is-now .startbtn{min-height:var(--control-h)}
+
 /* ── workflow: skip link, plan reason, pending-save, system details ── */
 .skiplink{position:absolute;left:-9999px;top:8px;z-index:100;background:var(--brand-deep);color:#fff;padding:10px 16px;border-radius:10px;font-weight:800;font-size:14px}
 .skiplink:focus{left:12px}
@@ -265,7 +333,7 @@ select:focus,input:focus{border-color:var(--brand)}
 .sysdetails[open] summary::after{transform:rotate(180deg)}
 .sysdetails summary h2{margin-bottom:0}
 .sysdetails[open] summary{margin-bottom:6px}
-.moredetails{border-top:1.5px dashed var(--line);margin-top:var(--sp-4)}
+.moredetails{border-top:1px dashed var(--line);margin-top:var(--space-group)}
 .moredetails summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:var(--fs-sm);font-weight:800;color:var(--ink-faint)}
 .moredetails summary::-webkit-details-marker{display:none}
 .moredetails summary::before{content:'▸';margin-right:8px;transition:transform .2s}
@@ -274,12 +342,35 @@ select:focus,input:focus{border-color:var(--brand)}
 .datechip{display:inline-block;background:var(--brand-bg);color:var(--brand-deep);border:1px solid var(--brand-line);border-radius:99px;padding:3px 11px;font-size:12px;font-weight:800;margin-bottom:10px}
 
 /* ── desktop layout ─────────────────────────────── */
-@media (min-width:920px){
-  .wrap{max-width:1024px}
-  #bannerZone{max-width:1024px}
-  .hero-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:0 30px;align-items:start}
+/* ── desktop: an intentional composition, not a stretched phone ──────
+   The plan keeps a comfortable reading column and the windows stay stacked
+   (three equal columns made three equally loud proposals and left the action
+   buttons on three different baselines). Reflection moves beside the plan as
+   a lighter secondary column instead of adding scroll below it. */
+@media (min-width:1000px){
+  .wrap{max-width:var(--content-wide)}
+  #bannerZone{max-width:var(--content-wide)}
+
+  #tab-content-plan{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+    gap:0 var(--space-section);align-items:start}
+  #tab-content-plan>.section,#tab-content-plan>#blueprintOutput{grid-column:1;min-width:0}
+  #tab-content-plan>#weekCard{grid-column:2;grid-row:1/span 2;position:sticky;top:var(--space-section)}
+  /* the secondary column carries less ink than the plan it sits next to */
+  #tab-content-plan>#weekCard{background:none;border:none;box-shadow:none;padding:0 0 0 var(--space-section);
+    border-left:1px solid var(--border-subtle)}
+
+  /* forms and history keep a reading width instead of spanning the page */
+  #tab-content-log,#tab-content-history,#tab-content-analytics{max-width:var(--content-main);margin-inline:auto}
+  #saveBtn{width:auto;min-width:220px;display:block;margin-left:auto}
+
+  .hero-grid{display:block}
   .hero-grid .focusline{border-top:none;border-left:1.5px dashed var(--line);margin-top:0;padding:2px 0 2px 26px}
-  .wingrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start}
-  .wingrid .winblock{margin-bottom:0}
   .statgrid{grid-template-columns:repeat(4,1fr)}
+
+  /* the nav is a way back, not a fixture competing with the plan */
+  .nav{left:50%;transform:translateX(-50%);width:min(520px,calc(100% - 32px));bottom:16px;
+    border:1px solid var(--border-subtle);border-radius:18px;box-shadow:var(--shadow-lifted)}
+}
+@media (min-width:1000px) and (max-width:1180px){
+  #tab-content-plan>#weekCard{padding-left:var(--space-group)}
 }
