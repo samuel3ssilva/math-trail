@@ -425,7 +425,7 @@ function clearLogs(){
 }
 
 // "Not a good moment today" — a rest day is a first-class, penalty-free entry.
-// It never reduces any metric; the streak treats it as continuity (see renderWeekCard).
+// It never reduces any metric; it simply appears as a calm ☾ in the week strip.
 function markRestDay(){
   const today=localDateKey();
   const days=repo.getRestDays();
@@ -575,14 +575,8 @@ function renderWeekCard(){
   const weekKeys=new Set([...Array(7)].map((_,i)=>localDateKey(addDays(now,-(6-i)))));
   const week=logs.filter(l=>weekKeys.has(sessionDayKey(l)));
   const restDays=new Set(repo.getRestDays());
-  // Day streak — a gentle secondary signal, never the headline metric.
-  // A logged rest day ("not a good moment today") preserves continuity: it
-  // neither breaks the streak nor inflates it with a fake session.
-  const days=new Set(logs.map(l=>sessionDayKey(l)));
-  const countsForStreak=k=>days.has(k)||restDays.has(k);
-  let streak=0; let d=now;
-  if(!countsForStreak(localDateKey(d))) d=addDays(d,-1);
-  while(countsForStreak(localDateKey(d))){ if(days.has(localDateKey(d))) streak++; d=addDays(d,-1); }
+  // No streak exists in this product — presence is shown by the week strip,
+  // and a rest day appears there as a gentle ☾, nothing more.
   const exc=week.filter(l=>l.engagement==='excited').length;
   const focus=currentFocus(logs);
   const fp=milestoneProgress(focus,logs);
