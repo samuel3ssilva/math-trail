@@ -11,7 +11,7 @@ commits contain blobs with personal identifiers:
   (`js/app.mjs` in commits `52d7e5c` → until the privacy commit), plus one
   header comment in `styles.css` and an old fixture `app` field
   (`tests/fixtures/v1-backup.json` in `1f4e3ce`);
-- a real birth month (`2023-06`) as a code fallback in the same range;
+- a real birth month as a code fallback in the same range;
 - a household-materials / child-calibration comment block in `js/app.mjs`.
 
 No real session logs, notes or backups were ever committed. Exposure is
@@ -38,11 +38,12 @@ git bundle create ../math-trail-pre-rewrite.bundle --all
 # 1. install git-filter-repo (no repo deps involved)
 pip3 install --user git-filter-repo
 
-# 2. replacements file (never commit it) — real strings on the left
+# 2. replacements file (never commit it) — fill the real strings locally;
+#    they must never appear in this runbook either (the privacy guard checks)
 cat > /tmp/replacements.txt <<'EOF'
 <child-name-lowercase>==>legacy
 <child-name-capitalized>==>Legacy
-2023-06==>2023-06
+<real-birth-month-YYYY-MM>==>2023-06
 EOF
 
 # 3. rewrite every blob in every ref
