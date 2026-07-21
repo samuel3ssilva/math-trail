@@ -9,7 +9,7 @@ import { localDateKey, sessionDayKey, addDays, fmtElapsed, finishSession } from 
 import { makeRepo, migrateStore, importBackup, buildExport, appendLog, SCHEMA_VERSION } from './storage.mjs';
 import { I18N } from './i18n.mjs';
 import { logTimestampFor, pendingRestore, canStartSession, discardPending, promotedWindow } from './session.mjs';
-import { generateDemoData, DEMO_PROFILE } from './demo.mjs';
+import { generateDemoData, DEMO_PROFILE, DEMO_DATA_VERSION, migrateDemoProfile } from './demo.mjs';
 
 // The app assumes common household manipulatives (interlocking cubes, small toy
 // counters, dice, paper and pen) — see the activity catalog for what each uses.
@@ -859,13 +859,22 @@ function seedDemo(){
   saveLogs(logs);
   saveProfile(profile);
   saveState(replayState(logs));
+  repo.setDemoVersion(DEMO_DATA_VERSION);
 }
 
 // INIT
 migrate();
-if(new URLSearchParams(location.search).get('demo')==='1' && !getLogs().length){
-  seedDemo();
-  setTimeout(()=>showToast(t('demo_on')), 400);
+if(new URLSearchParams(location.search).get('demo')==='1'){
+  if(!getLogs().length){
+    seedDemo();
+    setTimeout(()=>showToast(t('demo_on')), 400);
+  } else {
+    // Returning demo visitor: normalize a stale synthetic profile (v1 seeded the
+    // name "Alex") so the title reads "Math Trail". Scoped to demo mode and only
+    // the recognizable demo profile — real logs, settings and data are untouched.
+    const res = migrateDemoProfile(getProfile(), repo.getDemoVersion());
+    if(res.changed){ saveProfile(res.profile); repo.setDemoVersion(res.version); }
+  }
 }
 applyLang();
 

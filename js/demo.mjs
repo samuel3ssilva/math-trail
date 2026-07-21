@@ -10,6 +10,41 @@ import { WINDOWS } from './activities.mjs';
 export const DEMO_PROFILE = Object.freeze({ name: '', birth: '2023-06', chapter: 4 });
 
 /**
+ * Version of the synthetic demo dataset. Bumped when the demo's shape changes
+ * so returning `?demo=1` visitors get a safe, scoped migration instead of stale
+ * state. v1 shipped a named placeholder ("Alex"); v2 shows the product name.
+ */
+export const DEMO_DATA_VERSION = 2;
+
+// The exact v1 demo profile. Only this fingerprint is normalized — anything
+// else is left untouched, so a real profile is never altered.
+const DEMO_V1_PROFILE = { name: 'Alex', birth: '2023-06', chapter: 4 };
+
+/**
+ * Migrate a stale synthetic demo profile so the header shows the product name.
+ * PURE and conservative: it only rewrites the recognizable v1 demo profile
+ * (name "Alex" + the demo's exact birth/chapter), and only the name. A real
+ * profile — or an already-current one — is returned unchanged. Runs solely in
+ * `?demo=1` mode; it never clears logs, settings or any real data.
+ *
+ * @param {object|null} profile the stored profile
+ * @param {number|string|null} storedVersion the persisted demoDataVersion
+ * @returns {{profile: object, version: number, changed: boolean}}
+ */
+export function migrateDemoProfile(profile, storedVersion){
+  const v = Number(storedVersion) || 0;
+  if (v >= DEMO_DATA_VERSION) return { profile, version: v, changed: false };
+  const isV1Demo = !!profile
+    && profile.name === DEMO_V1_PROFILE.name
+    && profile.birth === DEMO_V1_PROFILE.birth
+    && Number(profile.chapter) === DEMO_V1_PROFILE.chapter;
+  if (isV1Demo){
+    return { profile: { ...profile, name: '' }, version: DEMO_DATA_VERSION, changed: true };
+  }
+  return { profile, version: DEMO_DATA_VERSION, changed: false };
+}
+
+/**
  * Generate ~3 weeks of synthetic session logs.
  * Deterministic: the same `baseDate` and `rng` always produce the same output.
  *
