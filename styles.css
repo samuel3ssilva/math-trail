@@ -330,7 +330,7 @@ select:focus,input:focus{border-color:var(--brand)}
 /* phones: two columns of summary cards, never four squeezed into a row */
 @media (max-width:560px){
   .summary{grid-template-columns:1fr 1fr}
-  .sumcard.wide{grid-column:1/-1}
+  .sumcard{min-height:88px;padding:16px 12px}
 }
 @media (max-width:380px){
   :root{--space-page-inline:14px;--space-card:18px}
