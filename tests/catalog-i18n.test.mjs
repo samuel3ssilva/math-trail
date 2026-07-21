@@ -74,7 +74,7 @@ test('PT translations actually differ from English (not accidental copies)', () 
 });
 
 test('no personal-name echoes in the catalog layouts (privacy)', () => {
-  const banned = /\bIsa\b|Isadora/;
+  const banned = /\bIsa\b/; // the diminutive the base privacy guard does not itself ban
   for (const id of EN_IDS){
     assert.doesNotMatch(ACTIVITIES[id].layout, banned, `${id} EN layout`);
     assert.doesNotMatch(ACTIVITIES_PT[id].layout, banned, `${id} PT layout`);
