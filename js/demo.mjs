@@ -7,7 +7,7 @@
 import { WINDOWS } from './activities.mjs';
 
 /** The demo child is a fictional placeholder, clearly not a real person. */
-export const DEMO_PROFILE = Object.freeze({ name: 'Alex', birth: '2023-06', chapter: 4 });
+export const DEMO_PROFILE = Object.freeze({ name: '', birth: '2023-06', chapter: 4 });
 
 /**
  * Generate ~3 weeks of synthetic session logs.

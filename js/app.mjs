@@ -572,8 +572,11 @@ function renderHeader(){
   const p=getProfile();
   const title = p.name ? (LANG==='pt' ? `Matemática da ${p.name}` : `${p.name}'s Math Trail`) : 'Math Trail';
   document.getElementById('appTitle').textContent = title;
-  // Book-chapter focus is configuration, not identity — it lives in Settings only.
-  document.getElementById('headerSub').textContent = p.name ? ageString() : t('app_tagline');
+  // Subtitle is independent of the name: a valid birth month shows the age,
+  // otherwise the product tagline. The public demo has no name but a valid
+  // birth, so the title falls back to "Math Trail" while the age still shows.
+  const hasBirth = /^\d{4}-(0[1-9]|1[0-2])$/.test(p.birth || '');
+  document.getElementById('headerSub').textContent = hasBirth ? ageString() : t('app_tagline');
 }
 
 // Four calm orientation cards. Every value is a plain count or a label — no
