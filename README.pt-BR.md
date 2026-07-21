@@ -6,7 +6,7 @@ JavaScript puro, zero dependências de runtime, offline-first. Um app pequeno e 
 [![CI](https://github.com/samuel3ssilva/math-trail/actions/workflows/ci.yml/badge.svg)](https://github.com/samuel3ssilva/math-trail/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**[▶ Demo ao vivo (dados sintéticos)](https://samuel3ssilva.github.io/math-trail/?demo=1)** · **[App vazio](https://samuel3ssilva.github.io/math-trail/)** · **[Última release](https://github.com/samuel3ssilva/math-trail/releases/latest)** · **[Case study](docs/case-study.md)** · **[Documentação técnica](docs/architecture.md)** · [Read in English](README.md)
+**[▶ Demo ao vivo (dados sintéticos)](https://samuel3ssilva.github.io/math-trail/?demo=1)** · **[App vazio](https://samuel3ssilva.github.io/math-trail/)** · **[Última release](https://github.com/samuel3ssilva/math-trail/releases/latest)** · **[Case study](docs/case-study.md)** · **[Guia de uso](docs/usage-guide.pt-BR.md)** · **[Documentação técnica](docs/architecture.md)** · [Read in English](README.md)
 
 ![Arquitetura do Math Trail](docs/assets/math-trail-architecture.svg)
 
