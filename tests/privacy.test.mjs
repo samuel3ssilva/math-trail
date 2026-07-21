@@ -87,9 +87,12 @@ test('UTC date keys are banned outside the time module', () => {
   assert.deepEqual(offenders, [], '"today" must come from time.mjs localDateKey');
 });
 
-test('the deployable artifact (dist/), when built, is free of personal data and private files', (t) => {
+test('the deployable artifact (dist/) is free of personal data and private files', () => {
   const distDir = join(ROOT, 'dist');
-  if (!existsSync(distDir)){ t.skip('dist/ not built in this run'); return; }
+  // Never skip: this is a security control. `npm test` builds dist/ first, so a
+  // missing artifact means the guard would not have run — that must fail loudly.
+  assert.ok(existsSync(distDir),
+    'dist/ must exist so this scan actually runs — use `npm test` (or `npm run build` first)');
   const offenders = [];
   for (const file of walk(distDir)){
     if (PRIVATE_PATH_PATTERNS.some(p => p.test(file))) offenders.push(`${file}: private path`);

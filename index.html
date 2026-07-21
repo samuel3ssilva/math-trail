@@ -1,14 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Math Trail — a calm, adaptive early-math practice planner for parents of toddlers">
-<meta name="theme-color" content="#F7F3EA">
-<title>Math Trail — early math practice for little kids</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<meta name="description" content="Math Trail — um planejador calmo e adaptativo de matemática inicial para pais de crianças pequenas">
+<meta name="theme-color" content="#F6F7F9">
+<title>Math Trail — prática de matemática para os pequenos</title>
 
 <link rel="stylesheet" href="styles.css">
 <link rel="manifest" href="manifest.webmanifest">
@@ -16,7 +13,9 @@
 
 <body>
 
-<div id="bannerZone"></div>
+<a class="skiplink" href="#main" data-i18n="skip_link">Ir direto para o plano de hoje</a>
+
+<div id="bannerZone" aria-live="polite"></div>
 
 <div class="wrap">
 
@@ -30,70 +29,72 @@
       </div>
     </div>
     <div class="hactions">
-      <span id="modeChip" class="pill hidden"></span>
-      <button class="gear" onclick="openSettings()" aria-label="Settings">⚙</button>
+      <div class="langtoggle" role="group" data-i18n-aria="al_lang" aria-label="Idioma">
+        <button id="lang-pt" type="button" onclick="setLang('pt')">PT</button>
+        <button id="lang-en" type="button" onclick="setLang('en')">EN</button>
+      </div>
+      <span id="modeChip" class="pill"></span>
+      <button class="gear" onclick="openSettings()" data-i18n-aria="al_settings" aria-label="Configurações">⚙</button>
     </div>
   </header>
 
   <!-- ACTIVE SESSION -->
   <div id="sessionBar"></div>
 
-  <!-- THIS WEEK (hero) -->
-  <section class="card hero fade" id="weekCard"></section>
+  <!-- AT-A-GLANCE — four calm, non-evaluative orientation cards -->
+  <section class="summary" id="summaryRow" aria-label="Resumo"></section>
 
-  <!-- ═══ PLAN ═══ -->
+  <!-- TABS — a light segmented control, not a floating bar -->
+  <nav class="tabs" data-i18n-aria="al_nav" aria-label="Navegação principal">
+    <button id="tab-plan" class="on" onclick="showTab('plan')" data-i18n="tab_plan">Plano</button>
+    <button id="tab-log" onclick="showTab('log')" data-i18n="tab_log">Registrar</button>
+    <button id="tab-history" onclick="showTab('history')" data-i18n="tab_history">Histórico</button>
+    <button id="tab-analytics" onclick="showTab('analytics')" data-i18n="tab_stats">Progresso</button>
+  </nav>
+
+  <main id="main">
+
+  <!-- ═══ PLAN — today first: the parent's question is "what do we do now?" ═══ -->
   <div id="tab-content-plan" class="fade">
     <div class="card">
-      <h2 data-i18n="plan_title">Today's sessions</h2>
-      <p class="sub" style="margin:-6px 0 14px" data-i18n="plan_sub">Tap Start to begin today's pick — or swap it for another. A short activity already counts.</p>
+      <h2 data-i18n="plan_title">Sessões de hoje</h2>
+      <p class="sub plan-sub" data-i18n="plan_sub">Estas são oportunidades possíveis, não três obrigações diárias — escolha uma, várias ou nenhuma. Uma atividade curta já é uma vitória.</p>
       <div class="wingrid">
-      <div class="winblock win-morning">
+      <div class="winblock win-morning" id="win-morning">
         <div class="winhead">
-          <span class="wicon" aria-hidden="true">🌅</span>
-          <span class="wtxt"><span class="t" data-i18n="wh_morning">Morning · ~8–11 AM</span><span class="d" data-i18n="wd_morning">Low pressure · breakfast table</span></span>
+          <span class="wdot" aria-hidden="true"></span>
+          <span class="wtxt"><span class="t" data-i18n="wh_morning">Manhã · 8–11h</span><span class="d" data-i18n="wd_morning">Leve · na mesa do café</span></span>
           <span class="donechip hidden" id="done-morning"></span>
         </div>
-        <button type="button" class="planblock" id="plan-morning" onclick="viewPlan('morning')"></button>
-        <div class="actrow2">
-          <button class="startbtn" onclick="startSession('morning')">▶&nbsp;<span data-i18n="btn_start">Start</span></button>
-          <button class="swapbtn" onclick="swapPlan('morning')">↻ <span data-i18n="btn_swap">Swap</span></button>
-        </div>
-        <div class="orpick">
-          <select id="pick-morning" onchange="pickFromList('morning')" aria-label="Choose morning activity"></select>
+        <div class="orrow">
+          <select id="pick-morning" onchange="pickFromList('morning')" data-i18n-aria="al_pick_morning" aria-label="Escolher atividade"></select>
+          <button type="button" class="suggestbtn" onclick="generateBlueprint('morning')" data-i18n-aria="al_suggest" aria-label="Sugestão inteligente">✦</button>
         </div>
       </div>
-      <div class="winblock win-afternoon">
+      <div class="winblock win-afternoon" id="win-afternoon">
         <div class="winhead">
-          <span class="wicon" aria-hidden="true">☀️</span>
-          <span class="wtxt"><span class="t" data-i18n="wh_afternoon">Afternoon · ~12–5 PM</span><span class="d" data-i18n="wd_afternoon">Full focus · all activities</span></span>
+          <span class="wdot" aria-hidden="true"></span>
+          <span class="wtxt"><span class="t" data-i18n="wh_afternoon">Tarde · 12–17h</span><span class="d" data-i18n="wd_afternoon">Foco total · todas as atividades</span></span>
           <span class="donechip hidden" id="done-afternoon"></span>
         </div>
-        <button type="button" class="planblock" id="plan-afternoon" onclick="viewPlan('afternoon')"></button>
-        <div class="actrow2">
-          <button class="startbtn" onclick="startSession('afternoon')">▶&nbsp;<span data-i18n="btn_start">Start</span></button>
-          <button class="swapbtn" onclick="swapPlan('afternoon')">↻ <span data-i18n="btn_swap">Swap</span></button>
-        </div>
-        <div class="orpick">
-          <select id="pick-afternoon" onchange="pickFromList('afternoon')" aria-label="Choose afternoon activity"></select>
+        <div class="orrow">
+          <select id="pick-afternoon" onchange="pickFromList('afternoon')" data-i18n-aria="al_pick_afternoon" aria-label="Escolher atividade"></select>
+          <button type="button" class="suggestbtn" onclick="generateBlueprint('afternoon')" data-i18n-aria="al_suggest" aria-label="Sugestão inteligente">✦</button>
         </div>
       </div>
-      <div class="winblock win-bedtime">
+      <div class="winblock win-bedtime" id="win-bedtime">
         <div class="winhead">
-          <span class="wicon" aria-hidden="true">🌙</span>
-          <span class="wtxt"><span class="t" data-i18n="wh_bedtime">Bedtime · ~8 PM</span><span class="d" data-i18n="wd_bedtime">Quick &amp; calm · 3 min max</span></span>
+          <span class="wdot" aria-hidden="true"></span>
+          <span class="wtxt"><span class="t" data-i18n="wh_bedtime">Noite · ~20h</span><span class="d" data-i18n="wd_bedtime">Rápido e calmo · máx. 3 min</span></span>
           <span class="donechip hidden" id="done-bedtime"></span>
         </div>
-        <button type="button" class="planblock" id="plan-bedtime" onclick="viewPlan('bedtime')"></button>
-        <div class="actrow2">
-          <button class="startbtn" onclick="startSession('bedtime')">▶&nbsp;<span data-i18n="btn_start">Start</span></button>
-          <button class="swapbtn" onclick="swapPlan('bedtime')">↻ <span data-i18n="btn_swap">Swap</span></button>
-        </div>
-        <div class="orpick">
-          <select id="pick-bedtime" onchange="pickFromList('bedtime')" aria-label="Choose bedtime activity"></select>
+        <div class="orrow">
+          <select id="pick-bedtime" onchange="pickFromList('bedtime')" data-i18n-aria="al_pick_bedtime" aria-label="Escolher atividade"></select>
+          <button type="button" class="suggestbtn" onclick="generateBlueprint('bedtime')" data-i18n-aria="al_suggest" aria-label="Sugestão inteligente">✦</button>
         </div>
       </div>
       </div>
-      <button type="button" class="restbtn" onclick="markRestDay()">🌙 <span data-i18n="btn_rest">Not a good moment today</span></button>
+      <button type="button" class="restbtn" onclick="markRestDay()"><span data-i18n="btn_rest">Hoje não é um bom momento</span></button>
     </div>
     <div id="blueprintOutput" class="hidden"></div>
   </div>
@@ -101,61 +102,68 @@
   <!-- ═══ LOG ═══ -->
   <div id="tab-content-log" class="hidden fade">
     <div class="card">
-      <h2 data-i18n="log_title">Log this session</h2>
-      <div class="editnote" id="editNote"><span data-i18n="edit_note">Editing a saved session</span> — <button type="button" onclick="cancelEdit()" data-i18n="cancel">cancel</button></div>
+      <h2 data-i18n="log_title">Registrar esta sessão</h2>
+      <div class="editnote" id="editNote"><span data-i18n="edit_note">Editando uma sessão salva</span> — <button type="button" onclick="cancelEdit()" data-i18n="cancel">cancelar</button></div>
+      <div class="pendnote" id="pendingNote" role="status"></div>
       <form onsubmit="saveLog(event)">
-        <label class="f" for="log-window" data-i18n="lbl_window">Session window</label>
+        <label class="f" for="log-window" data-i18n="lbl_window">Janela da sessão</label>
         <select id="log-window">
-          <option value="morning" data-i18n="opt_morning">Morning (~8–11 AM)</option>
-          <option value="afternoon" selected data-i18n="opt_afternoon">Afternoon (~12–5 PM)</option>
-          <option value="bedtime" data-i18n="opt_bedtime">Bedtime (~8 PM)</option>
+          <option value="morning" data-i18n="opt_morning">Manhã (8–11h)</option>
+          <option value="afternoon" selected data-i18n="opt_afternoon">Tarde (12–17h)</option>
+          <option value="bedtime" data-i18n="opt_bedtime">Noite (~20h)</option>
         </select>
 
-        <label class="f" for="log-activity" data-i18n="lbl_activity">Activity done</label>
+        <label class="f" for="log-activity" data-i18n="lbl_activity">Atividade realizada</label>
         <select id="log-activity"></select>
 
         <fieldset>
-          <legend class="f" data-i18n="lbl_completion">How did it go?</legend>
-          <p class="hint" data-i18n="comp_hint">Pick the closest fit — there is no "bad" result.</p>
+          <legend class="f" data-i18n="lbl_completion">Como foi?</legend>
+          <p class="hint" data-i18n="comp_hint">Escolha a opção mais próxima — não existe resultado "ruim".</p>
           <div class="radios c3">
-            <label><input type="radio" name="completion" value="full"><span class="opt"><span class="e">✅</span><span class="t" data-i18n="v_full">Full</span></span></label>
-            <label><input type="radio" name="completion" value="partial" checked><span class="opt"><span class="e">⚡</span><span class="t" data-i18n="v_partial">Partial</span></span></label>
-            <label><input type="radio" name="completion" value="refused"><span class="opt"><span class="e">🚫</span><span class="t" data-i18n="v_refused">Refused</span></span></label>
+            <label><input type="radio" name="completion" value="full"><span class="opt"><span class="e">✅</span><span class="t" data-i18n="v_full">Completa</span></span></label>
+            <label><input type="radio" name="completion" value="partial" checked><span class="opt"><span class="e">⚡</span><span class="t" data-i18n="v_partial">Parcial</span></span></label>
+            <label><input type="radio" name="completion" value="refused"><span class="opt"><span class="e">🚫</span><span class="t" data-i18n="v_refused">Recusou</span></span></label>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend class="f" data-i18n="lbl_mood">Child's mood</legend>
+          <legend class="f" data-i18n="lbl_mood">Humor da criança</legend>
           <div class="radios c3">
-            <label><input type="radio" name="engagement" value="excited"><span class="opt"><span class="e">🌟</span><span class="t" data-i18n="v_excited">Excited</span></span></label>
-            <label><input type="radio" name="engagement" value="neutral" checked><span class="opt"><span class="e">😐</span><span class="t" data-i18n="v_neutral">Neutral</span></span></label>
-            <label><input type="radio" name="engagement" value="resisted"><span class="opt"><span class="e">😤</span><span class="t" data-i18n="v_resisted">Resisted</span></span></label>
+            <label><input type="radio" name="engagement" value="excited"><span class="opt"><span class="e">🌟</span><span class="t" data-i18n="v_excited">Animada</span></span></label>
+            <label><input type="radio" name="engagement" value="neutral" checked><span class="opt"><span class="e">😐</span><span class="t" data-i18n="v_neutral">Neutra</span></span></label>
+            <label><input type="radio" name="engagement" value="resisted"><span class="opt"><span class="e">😤</span><span class="t" data-i18n="v_resisted">Resistiu</span></span></label>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend class="f" data-i18n="lbl_ease">Cognitive ease</legend>
+          <legend class="f" data-i18n="lbl_ease">Como estava o desafio?</legend>
           <div class="radios c3">
-            <label><input type="radio" name="ease" value="too_easy"><span class="opt"><span class="e">😴</span><span class="t" data-i18n="v_too_easy">Too easy</span></span></label>
-            <label><input type="radio" name="ease" value="just_right" checked><span class="opt"><span class="e">🎯</span><span class="t" data-i18n="v_just_right">Just right</span></span></label>
-            <label><input type="radio" name="ease" value="too_hard"><span class="opt"><span class="e">🧠</span><span class="t" data-i18n="v_too_hard">Too hard</span></span></label>
+            <label><input type="radio" name="ease" value="too_easy"><span class="opt"><span class="e">😴</span><span class="t" data-i18n="v_too_easy">Muito fácil</span></span></label>
+            <label><input type="radio" name="ease" value="just_right" checked><span class="opt"><span class="e">🎯</span><span class="t" data-i18n="v_just_right">Na medida</span></span></label>
+            <label><input type="radio" name="ease" value="too_hard"><span class="opt"><span class="e">🧠</span><span class="t" data-i18n="v_too_hard">Muito difícil</span></span></label>
           </div>
         </fieldset>
 
-        <fieldset>
-          <legend class="f" data-i18n="lbl_reward">What sustained the activity?</legend>
-          <div class="radios c3">
-            <label><input type="radio" name="reward" value="intrinsic" checked><span class="opt"><span class="e">💚</span><span class="t" data-i18n="v_intrinsic">Play itself</span></span></label>
-            <label><input type="radio" name="reward" value="connection"><span class="opt"><span class="e">🤗</span><span class="t" data-i18n="v_connection">Connection</span></span></label>
-            <label><input type="radio" name="reward" value="extrinsic"><span class="opt"><span class="e">🍬</span><span class="t" data-i18n="v_extrinsic">Treat</span></span></label>
-          </div>
-        </fieldset>
+        <!-- Three taps cover most sessions; everything below is optional
+             with safe defaults (audit A2). -->
+        <details class="moredetails" id="logMore">
+          <summary data-i18n="more_details">Mais detalhes (opcional)</summary>
 
-        <label class="f" for="log-notes" data-i18n="lbl_notes">Notes (optional)</label>
-        <input id="log-notes" type="text" data-i18n-ph="ph_notes" placeholder="What happened? Any special moments...">
+          <fieldset>
+            <legend class="f" data-i18n="lbl_reward">O que sustentou a atividade?</legend>
+            <div class="radios c3">
+              <label><input type="radio" name="reward" value="intrinsic" checked><span class="opt"><span class="e">💚</span><span class="t" data-i18n="v_intrinsic">Brincadeira</span></span></label>
+              <label><input type="radio" name="reward" value="connection"><span class="opt"><span class="e">🤗</span><span class="t" data-i18n="v_connection">Conexão</span></span></label>
+              <label><input type="radio" name="reward" value="extrinsic"><span class="opt"><span class="e">🍬</span><span class="t" data-i18n="v_extrinsic">Docinho</span></span></label>
+            </div>
+          </fieldset>
+
+          <label class="f" for="log-notes" data-i18n="lbl_notes">Notas (opcional)</label>
+          <input id="log-notes" type="text" data-i18n-ph="ph_notes" placeholder="Ex.: &quot;Contou 4 morangos sem ajuda.&quot;">
+        </details>
 
         <div style="height:18px"></div>
-        <button type="submit" class="primary" id="saveBtn" data-i18n="btn_save">Save session</button>
+        <button type="submit" class="primary" id="saveBtn" data-i18n="btn_save">Salvar sessão</button>
       </form>
     </div>
   </div>
@@ -167,87 +175,67 @@
 
   <!-- ═══ STATS ═══ -->
   <div id="tab-content-analytics" class="hidden fade">
+    <!-- WEEK RHYTHM — reflection, in Progress where it belongs -->
+    <section class="card hero" id="weekCard"></section>
     <div class="card">
-      <h2 data-i18n="st_trail">Skill Trail</h2>
-      <p class="sub" style="margin:-6px 0 14px" data-i18n="st_trail_sub">Where she is on the path to 10</p>
+      <h2 data-i18n="st_trail">Trilha de experiências</h2>
+      <p class="sub" style="margin:-6px 0 14px" data-i18n="st_trail_sub">Portas de entrada da matemática — o ritmo varia de criança para criança, e isto não é uma avaliação.</p>
       <div class="trail" id="skillTrail"></div>
     </div>
     <div class="card">
-      <h2 data-i18n="st_goal">Goal Progress</h2>
+      <h2 data-i18n="st_goal">Experiências em construção</h2>
       <div id="goalProgress"></div>
     </div>
     <div class="card">
-      <h2 data-i18n="st_mood">Mood over time</h2>
+      <h2 data-i18n="st_mood">Humor ao longo do tempo</h2>
       <div id="moodChart"></div>
     </div>
     <div class="card">
       <div class="statgrid" id="statsGrid"></div>
     </div>
-    <div class="card">
-      <h2 data-i18n="st_adaptive">Adaptive State</h2>
+    <details class="card sysdetails">
+      <summary><h2 data-i18n="st_adaptive">Como as sugestões se adaptam</h2></summary>
+      <p class="sub" style="margin:2px 0 12px" data-i18n="st_adaptive_sub">Uma espiada em como o app se ajusta às suas sessões — nada aqui é julgamento.</p>
       <div class="stategrid" id="stateStatus"></div>
-    </div>
+    </details>
   </div>
+  </main>
 </div>
 
-<!-- BOTTOM NAVIGATION -->
-<nav class="nav" aria-label="Main">
-  <button id="tab-plan" class="on" onclick="showTab('plan')">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z"/><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg>
-    <span data-i18n="tab_plan">Plan</span>
-  </button>
-  <button id="tab-log" onclick="showTab('log')">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>
-    <span data-i18n="tab_log">Log</span>
-  </button>
-  <button id="tab-history" onclick="showTab('history')">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
-    <span data-i18n="tab_history">History</span>
-  </button>
-  <button id="tab-analytics" onclick="showTab('analytics')">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19.5v-5M12 19.5v-11M19 19.5v-7"/><path d="M3.5 21h17"/></svg>
-    <span data-i18n="tab_stats">Stats</span>
-  </button>
-</nav>
 
-<!-- SETTINGS MODAL -->
-<div id="modalBg" onclick="if(event.target===this)closeSettings()">
-  <div class="modal" role="dialog" aria-modal="true" aria-label="Settings">
-    <h2 style="margin-bottom:4px" data-i18n="set_title">Settings</h2>
-    <label class="f" data-i18n="set_lang">Language / Idioma</label>
-    <div class="langtoggle">
-      <button id="lang-pt" onclick="setLang('pt')">Português</button>
-      <button id="lang-en" onclick="setLang('en')">English</button>
-    </div>
-    <label class="f" for="set-name" data-i18n="set_name">Child's name</label>
+<!-- SETTINGS — native dialog: focus trap, Escape and focus restore for free -->
+<dialog id="settingsDialog" aria-labelledby="settingsTitle">
+  <div class="modal">
+    <h2 id="settingsTitle" style="margin-bottom:4px" data-i18n="set_title">Configurações</h2>
+    <label class="f" for="set-name" data-i18n="set_name">Nome da criança</label>
     <input type="text" id="set-name">
-    <label class="f" for="set-birth" data-i18n="set_birth">Birth month</label>
+    <label class="f" for="set-birth" data-i18n="set_birth">Mês de nascimento</label>
     <input type="month" id="set-birth">
-    <label class="f" for="set-chapter" data-i18n="set_chapter">Current Kate Snow chapter (boosts matching activities)</label>
+    <label class="f" for="set-chapter" data-i18n="set_chapter">Capítulo atual da Kate Snow (prioriza atividades do capítulo)</label>
     <select id="set-chapter">
-      <option value="0" data-i18n="ch0">No chapter focus</option>
-      <option value="1" data-i18n="ch1">Ch 1 · Counting &amp; number concept</option>
-      <option value="4" data-i18n="ch4">Ch 4 · Numbers 6–10</option>
-      <option value="5" data-i18n="ch5">Ch 5 · Written numerals 0–10</option>
-      <option value="6" data-i18n="ch6">Ch 6 · Comparing quantities</option>
-      <option value="7" data-i18n="ch7">Ch 7 · Addition &amp; subtraction stories</option>
+      <option value="0" data-i18n="ch0">Sem foco de capítulo</option>
+      <option value="1" data-i18n="ch1">Cap. 1 · Contagem e conceito de número</option>
+      <option value="4" data-i18n="ch4">Cap. 4 · Números 6–10</option>
+      <option value="5" data-i18n="ch5">Cap. 5 · Numerais escritos 0–10</option>
+      <option value="6" data-i18n="ch6">Cap. 6 · Comparando quantidades</option>
+      <option value="7" data-i18n="ch7">Cap. 7 · Histórias de adição e subtração</option>
     </select>
     <div class="mrow">
-      <button class="btn-soft" onclick="saveSettings()" data-i18n="set_save">Save</button>
-      <button class="btn-soft" onclick="closeSettings()" data-i18n="set_close">Close</button>
+      <button class="btn-soft" onclick="saveSettings()" data-i18n="set_save">Salvar</button>
+      <button class="btn-soft" onclick="closeSettings()" data-i18n="set_close">Fechar</button>
     </div>
     <div style="border-top:1px solid var(--line-soft);margin:18px 0 4px"></div>
-    <label class="f" data-i18n="set_backup">Data backup</label>
+    <label class="f" data-i18n="set_backup">Backup de dados</label>
     <div class="mrow" style="margin-top:2px">
-      <button class="btn-soft" onclick="exportData()" data-i18n="set_export">Export JSON</button>
-      <button class="btn-soft" onclick="document.getElementById('importFile').click()" data-i18n="set_import">Import JSON</button>
+      <button class="btn-soft" onclick="exportData()" data-i18n="set_export">Exportar JSON</button>
+      <button class="btn-soft" onclick="document.getElementById('importFile').click()" data-i18n="set_import">Importar JSON</button>
     </div>
     <input type="file" id="importFile" accept="application/json" class="hidden" onchange="importData(this)">
     <div class="mrow">
-      <button class="btn-danger" onclick="clearLogs()" data-i18n="set_clear">Delete all sessions</button>
+      <button class="btn-danger" onclick="clearLogs()" data-i18n="set_clear">Apagar todas as sessões</button>
     </div>
   </div>
-</div>
+</dialog>
 
 <div id="toast" role="status" aria-live="polite"></div>
 

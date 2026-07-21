@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { validateLog, validateBackup, importBackup, migrateStore, makeRepo,
-         buildExport, SCHEMA_VERSION, KEYS } from '../js/storage.mjs';
+         buildExport, normalizeLog, SCHEMA_VERSION, KEYS } from '../js/storage.mjs';
 import { replayState, getLevel } from '../js/engine.mjs';
 
 const dir = dirname(fileURLToPath(import.meta.url));
@@ -66,11 +66,17 @@ test('importing the synthetic v1 backup: zero loss, zero duplication, all fields
   const repo = makeRepo(store);
   const logs = repo.getLogs();
   assert.equal(logs.length, 5, 'no loss, no duplication');
-  // fields preserved verbatim — durations, windows, ratings, timestamps
-  assert.deepEqual(logs, FIXTURE.logs);
+  // Contract fields preserved exactly; unknown/extra fields dropped by the
+  // documented allowlist normalization (empty notes carry no data).
+  assert.deepEqual(logs, FIXTURE.logs.map(normalizeLog));
   assert.equal(logs[0].timestamp, FIXTURE.logs[0].timestamp, 'dates are never re-stamped');
   assert.ok(logs.every((l, i) => l.window === FIXTURE.logs[i].window), 'windows preserved');
   assert.ok(logs.every((l, i) => l.ease === FIXTURE.logs[i].ease), 'ratings preserved');
+  const withNotes = FIXTURE.logs.filter(l => l.notes);
+  assert.ok(withNotes.length > 0, 'fixture exercises notes');
+  for (const src of withNotes){
+    assert.ok(logs.some(l => l.notes === src.notes), 'non-empty notes preserved verbatim');
+  }
 
   // the engine replays the imported history correctly
   const state = repo.getStateRaw();

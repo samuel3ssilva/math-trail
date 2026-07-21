@@ -190,6 +190,9 @@ export function scoreActivities({pool, state, logs, profile, doneToday, excludeI
   if(excludeId) pool=pool.filter(a=>a!==excludeId);
 
   const focus=currentFocus(logs);
+  // Milestone labels are data-level English; the caller's `tr` may provide a
+  // localized 'ms_<id>' key — fall back to the raw label when it doesn't.
+  const focusName = focus ? (tr('ms_'+focus.id)!=='ms_'+focus.id ? tr('ms_'+focus.id) : focus.label) : '';
   const lastLog=logs[logs.length-1];
   const recentIds=logs.slice(-3).map(l=>l.activity);
 
@@ -201,7 +204,7 @@ export function scoreActivities({pool, state, logs, profile, doneToday, excludeI
       score*=2; reasons.push(tr('r_chapter').replace('{c}',profile.chapter));
     }
     if(focus && focus.ids.includes(id)){
-      score*=1.6; reasons.push(tr('r_gap')+' '+focus.label);
+      score*=1.6; reasons.push(tr('r_gap')+' '+focusName);
     }
     if(lastLog && lastLog.activity===id){ score*=0.15; }
     else if(recentIds.includes(id)){ score*=0.5; }

@@ -29,10 +29,21 @@ Short record of the trade-offs behind Math Trail. Format: decision → why → w
 
 ## 6. Single-file build target
 
-**Why:** some static hosts (and email attachments, and USB sticks) want exactly one file. `build.mjs` inlines CSS and the three modules into `dist/index.html` with a parse check. The modular tree stays the source of truth for development and tests.
-**Cost:** the inliner relies on a fixed import discipline between the three modules — acceptable at this scale, revisit if the module graph grows.
+**Why:** some static hosts (and email attachments, and USB sticks) want exactly one file. `build.mjs` inlines CSS and every module into `dist/index.html` with a parse check. The modular tree stays the source of truth for development and tests.
+**Cost:** the inliner relies on a fixed import discipline between the modules, and every module shares one scope in the bundle, so top-level names must be globally unique — the build's parse check catches a collision immediately. Acceptable at this scale, revisit if the module graph grows.
 
 ## 7. The child never uses the app
 
 **Why:** a pedagogy decision that became a product decision. Screen-time for a two-year-old is the thing this replaces. Everything in the UI addresses the adult: parent scripts, "no bad results" logging language, mood tracked as observation, treats tracked so the app can nudge toward connection-as-reward.
 **Cost:** none. This is the point.
+
+## 8. An unsaved session belongs to the device, not to the backup
+
+**Why:** a finished-but-unsaved session (`mathtrail_pending_session`) is a capture the parent has not yet reviewed. It travels inside exports so nothing is ever lost, but an import must not silently overwrite one: the copy waiting on screen is not automatically less current than the copy in the file. So — backup has none: nothing changes; device has none: the backup's copy is restored; both have one: the device's copy is kept and the conflict is reported to the parent, who saves or discards their own first. A malformed pending session in a backup is reported and never written.
+**Cost:** a conflict needs a human decision instead of resolving itself. That is the intended trade: losing an unreviewed capture is worse than asking a question.
+
+## 9. A saved session carries the instant it ended
+
+**Why:** the log takes its timestamp from `pendingSession.endedAt`, not from the moment the parent pressed save. A session that ends at 23:50 and gets saved at 00:10 belongs to the day it happened — otherwise the history groups it under the wrong day and every calendar rule in the engine reads a day that never had a session.
+**Cost:** manual entries with no pending session still use the clock, so a session logged from memory the next morning lands on the morning it was typed. Correcting that needs a date field the UI does not have yet.
+

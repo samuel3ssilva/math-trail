@@ -1,21 +1,23 @@
-// Build artifact + PWA integrity. Runs the REAL build, then inspects dist/.
+// Build artifact + PWA integrity. Inspects the real dist/ built by `npm test`.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = (...p) => join(ROOT, 'dist', ...p);
 
-// Build once for this file's assertions.
-execFileSync(process.execPath, ['build.mjs'], { cwd: ROOT, stdio: 'pipe' });
+// dist/ is built ONCE by `npm test` before the runner starts. No test file may
+// rebuild it: `node --test` runs files in parallel processes, so a rebuild here
+// would delete dist/ underneath the privacy scan in tests/privacy.test.mjs.
+assert.ok(existsSync(dist('index.html')),
+  'dist/ must be built before the suite runs — use `npm test` (or `npm run build` first)');
 
 test('dist contains the complete deployable site and nothing else', () => {
   for (const f of ['index.html', 'styles.css', 'manifest.webmanifest', 'sw.js',
                    'js/app.mjs', 'js/engine.mjs', 'js/activities.mjs', 'js/time.mjs',
-                   'js/storage.mjs', 'js/demo.mjs',
+                   'js/storage.mjs', 'js/demo.mjs', 'js/i18n.mjs', 'js/session.mjs',
                    'icons/icon-192.png', 'icons/icon-512.png', 'standalone/index.html']){
     assert.ok(existsSync(dist(f)), `missing from dist: ${f}`);
   }
@@ -50,6 +52,19 @@ test('the standalone bundle parses as a classic script and contains the app', ()
   new Function(m[1]); // throws on syntax error
   assert.ok(m[1].includes('ACTIVITIES'), 'catalog bundled');
   assert.ok(!/type="module"/.test(html), 'no dangling module reference');
+});
+
+// Regression guard: a test file that rebuilds dist/ mid-run deletes the artifact
+// underneath the parallel privacy scan — which then either crashes or, worse,
+// silently skips and reports green. dist/ is built once, before the runner.
+test('no test file rebuilds dist/ while the suite is running', () => {
+  const testsDir = join(ROOT, 'tests');
+  const offenders = readdirSync(testsDir)
+    .filter(f => f.endsWith('.test.mjs'))
+    // an actual child-process invocation of the build — not a mere mention
+    .filter(f => /(execFileSync|execSync|spawnSync|spawn)\s*\([^;]{0,160}build\.mjs/
+      .test(readFileSync(join(testsDir, f), 'utf8')));
+  assert.deepEqual(offenders, [], 'dist/ must be built once by `npm test`, never by a test file');
 });
 
 test('index.html in dist references only files that ship', () => {

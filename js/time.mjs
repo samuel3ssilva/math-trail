@@ -31,9 +31,43 @@ export function isSameLocalDay(a, b){
   return localDateKey(a) === localDateKey(b);
 }
 
+/**
+ * Whole minutes between session start and end, clamped to [1, maxMins].
+ * A forgotten timer must never record an absurd duration.
+ */
+export function clampSessionMinutes(startIso, endMs, maxMins = 120){
+  return Math.min(maxMins, Math.max(1, Math.round((endMs - new Date(startIso).getTime()) / 60000)));
+}
+
+/**
+ * Turn an active session into a pending (finished-but-unsaved) session record.
+ * Pure: the end instant is injected. Works across local midnight — the log's
+ * own timestamps decide day grouping later, not this function.
+ */
+export function finishSession(active, endMs, maxMins = 120){
+  return {
+    window: active.window,
+    activity: active.activity,
+    startedAt: active.startedAt,
+    endedAt: new Date(endMs).toISOString(),
+    mins: clampSessionMinutes(active.startedAt, endMs, maxMins)
+  };
+}
+
 /** mm:ss elapsed between two instants (for the session timer display). */
 export function fmtElapsed(startIso, now = new Date()){
   const s = Math.max(0, Math.floor((now - new Date(startIso)) / 1000));
   const m = Math.floor(s / 60), r = s % 60;
   return String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
+}
+
+/**
+ * Which daily window the clock is currently in. Presentation only: it decides
+ * which window the plan promotes visually, never which activity is suggested.
+ * @param {number} hour 0–23 local hour
+ */
+export function windowForHour(hour){
+  if (hour >= 5 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 18) return 'afternoon';
+  return 'bedtime';
 }
