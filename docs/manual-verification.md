@@ -99,3 +99,36 @@ remaining height, and compacting those was not attempted in this round.
 Also checked: no horizontal scroll at 320 px (`scrollWidth === clientWidth ===
 320`); the window title wraps at a word boundary; the state chip stays on the
 header line; the settings dialog behaviour verified earlier is unchanged.
+
+## 2026-07-20 — visual rollback to the approved cool-paper language
+
+The owner rejected the previous polish direction and supplied a reference
+screenshot as the authoritative look. Reproduced its visual language over the
+current safe branch, keeping every functional fix.
+
+**Divergence flagged:** the reference is NOT the `v0.1.0-security-baseline`
+look. The baseline's `styles.css` is warm-paper + green with a bottom nav bar;
+the reference is cool grey (#F6F7F9) + indigo (#4F46E5) + a segmented top
+control + a four-card summary row. That look comes from the personal build, not
+the tag. Per the owner's rule ("the screenshot defines the appearance"), the
+screenshot won; the baseline was treated as a rough pointer only. The reference
+font (Public Sans) was deliberately NOT adopted — system fonts stay, zero
+external requests.
+
+Verified in a real browser (Chromium 148 / macOS, demo data) at 320 / 390 /
+768 / 1280 / 1440:
+
+- palette, header pills, four summary cards, segmented tabs, three equal plan
+  windows with a coloured dot + full-width select + compact ✦ all match the
+  reference; the clock only toggles a small "agora" chip, never a size change
+- summary content is non-evaluative (sessions·7d, experiences explored,
+  suggested moment, milestone building now) — no streak, no percentages
+- no horizontal scroll at 320 or 390 (`scrollWidth === clientWidth`); summary
+  is a clean 2×2 on phones, four-in-a-row on desktop; header wraps to two rows
+- the settings dialog inherits the palette; initial focus still lands on
+  `#set-name` and `:modal` still holds (the approved a11y flow is unchanged)
+- **timed sessions still work through the new picker+✦ model**: selecting or
+  suggesting renders the blueprint, whose Start button calls startSessionFor →
+  session bar → endSession → `pendingSession` with `endedAt`. Confirmed the
+  full chain end to end, so the pending-session feature is intact.
+- lint OK (54 files) · 131/131 tests · 0 skipped · build OK · no console errors
