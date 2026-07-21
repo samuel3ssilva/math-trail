@@ -10,7 +10,7 @@ and no data about any real child exists in this repository.**
 |---|---|---|
 | Session logs | window, activity id, completion, mood, ease, reward, optional minutes, optional free-text note | `localStorage` on the parent's device only |
 | Profile | a display name, birth month, current book chapter | `localStorage` on the parent's device only |
-| Adaptive state | levels, streak counters, mode flags — all derivable from the logs | `localStorage` on the parent's device only |
+| Adaptive state | levels, mastery, mode flags — all derivable from the logs | `localStorage` on the parent's device only |
 | Daily plan / active session / rest days | ephemeral operational state | `localStorage` on the parent's device only |
 | Exports | a JSON file the parent explicitly downloads | wherever the parent saves it |
 

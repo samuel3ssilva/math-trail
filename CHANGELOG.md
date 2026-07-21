@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.0.0 — 2026-07-21
+
+Public portfolio release. The product is complete and fully localized; the
+engine stays a documented rule-based system (no ML).
+
+### Product
+- Full **PT-BR / EN localization of the entire 28-activity catalog** — names,
+  materials, level descriptions, layouts, parent scripts, story scripts and
+  skill labels — with completeness tests. The English catalog stays complete.
+- Parent-facing UX (calm cool-paper visual language, summary cards, segmented
+  tabs, three equal daily windows); the child never uses the screen.
+
+### Returning-visitor correctness
+- Service-worker cache bumped (`math-trail-v5`) so returning users get the new
+  shell without any manual cache clearing.
+- Scoped, versioned migration of stale synthetic demo state (`demoDataVersion`):
+  a returning `?demo=1` visitor now sees the product name, and **no real data is
+  touched**.
+
+### Privacy & docs
+- Neutralized a personal-name echo in a catalog diagram.
+- Rewritten portfolio README (EN + PT), a final [case study](docs/case-study.md),
+  an [AI-assisted-engineering](docs/ai-assisted-engineering.md) doc, a
+  [portfolio guide](docs/portfolio-guide.md), an architecture diagram, and a
+  [demo script](docs/demo-script.md).
+- **153 tests, 0 skipped**; zero external requests; deploy gated on `main`.
+
 ## [2.1.0] — 2026-07-20
 
 Senior review pass: privacy, determinism, data integrity, honest statistics.
@@ -58,4 +85,4 @@ Senior review pass: privacy, determinism, data integrity, honest statistics.
 ## [2.0.0] — 2026-07-19
 
 Initial public release: v2 redesign, modular codebase, adaptive engine with
-18 tests, PWA, GitHub Pages + CI workflows, bilingual PT-BR/EN interface.
+automated test suite, PWA, GitHub Pages + CI workflows, bilingual PT-BR/EN interface.

@@ -24,7 +24,10 @@ export const KEYS = {
   preImportSnapshot: 'mathtrail_snapshot_pre_import',
   // A finished-but-unsaved session. Only removed after the log is stored
   // successfully or the parent explicitly discards it (PR review P0).
-  pending: 'mathtrail_pending_session'
+  pending: 'mathtrail_pending_session',
+  // Version marker for the synthetic `?demo=1` dataset only — never written for
+  // real users (see app.mjs demo init). Enables scoped demo-state migration.
+  demoVersion: 'mathtrail_demo_version'
 };
 
 const WINDOWS_SET = new Set(['morning', 'afternoon', 'bedtime']);
@@ -149,7 +152,9 @@ export function makeRepo(store){
     getRestDays(){ const v = readJSON(store, KEYS.rest, []); return Array.isArray(v) ? v : []; },
     saveRestDays(days){ store.setItem(KEYS.rest, JSON.stringify(days)); },
     getLang(){ return store.getItem(KEYS.lang) || null; },
-    saveLang(l){ store.setItem(KEYS.lang, l); }
+    saveLang(l){ store.setItem(KEYS.lang, l); },
+    getDemoVersion(){ return store.getItem(KEYS.demoVersion); },
+    setDemoVersion(v){ store.setItem(KEYS.demoVersion, String(v)); }
   };
 }
 

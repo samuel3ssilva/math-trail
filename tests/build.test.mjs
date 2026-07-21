@@ -17,7 +17,7 @@ assert.ok(existsSync(dist('index.html')),
 test('dist contains the complete deployable site and nothing else', () => {
   for (const f of ['index.html', 'styles.css', 'manifest.webmanifest', 'sw.js',
                    'js/app.mjs', 'js/engine.mjs', 'js/activities.mjs', 'js/time.mjs',
-                   'js/storage.mjs', 'js/demo.mjs', 'js/i18n.mjs', 'js/session.mjs',
+                   'js/storage.mjs', 'js/demo.mjs', 'js/i18n.mjs', 'js/session.mjs', 'js/activities-pt.mjs',
                    'icons/icon-192.png', 'icons/icon-512.png', 'standalone/index.html']){
     assert.ok(existsSync(dist(f)), `missing from dist: ${f}`);
   }

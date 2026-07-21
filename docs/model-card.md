@@ -26,7 +26,7 @@ systems deserve the same documentation discipline.
 ## Inputs
 
 Session logs typed by the parent: window, activity, completion, mood
-(parent-observed), cognitive ease (parent-judged), reward used, optional
+(parent-observed), challenge ease (parent-judged: "how the challenge felt"), reward used, optional
 duration and note. Plus the profile's book-chapter focus.
 
 ## Outputs

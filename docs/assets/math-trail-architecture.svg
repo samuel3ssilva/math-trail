@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 470" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" role="img" aria-label="Math Trail architecture: a vanilla-JS UI layer wiring pure engine, storage, time, session, i18n and catalog modules; a PWA shell; all data local.">
+  <rect width="860" height="470" rx="16" fill="#F6F7F9"/>
+  <text x="32" y="46" font-size="22" font-weight="800" fill="#16182B">Math Trail — architecture</text>
+  <text x="32" y="70" font-size="13.5" font-weight="600" fill="#5A6172">Vanilla JS · zero dependencies · rule-based engine · local-first · offline PWA</text>
+
+  <!-- UI layer -->
+  <rect x="32" y="96" width="796" height="66" rx="12" fill="#ECEBFB" stroke="#D9D6F6"/>
+  <text x="48" y="124" font-size="15" font-weight="800" fill="#4338CA">index.html + styles.css  →  js/app.mjs</text>
+  <text x="48" y="146" font-size="12.5" font-weight="600" fill="#5A6172">UI layer: rendering, daily plan, session flow, i18n wiring — DOM only, no domain logic</text>
+
+  <!-- arrows -->
+  <g stroke="#B7BDCB" stroke-width="1.5" fill="none">
+    <path d="M120 162 L120 196"/><path d="M255 162 L255 196"/><path d="M390 162 L390 196"/>
+    <path d="M525 162 L525 196"/><path d="M660 162 L660 196"/><path d="M780 162 L780 196"/>
+  </g>
+
+  <!-- module row 1 -->
+  <g font-size="13" font-weight="800" fill="#16182B">
+    <rect x="32" y="198" width="180" height="72" rx="12" fill="#FFFFFF" stroke="#E9EAF0"/>
+    <text x="46" y="224">js/engine.mjs</text>
+    <text x="46" y="246" font-size="11.5" font-weight="600" fill="#5A6172">pure adaptive rules</text>
+    <text x="46" y="262" font-size="11.5" font-weight="600" fill="#5A6172">clock-free replay</text>
+
+    <rect x="224" y="198" width="180" height="72" rx="12" fill="#FFFFFF" stroke="#E9EAF0"/>
+    <text x="238" y="224">js/storage.mjs</text>
+    <text x="238" y="246" font-size="11.5" font-weight="600" fill="#5A6172">schema + validation</text>
+    <text x="238" y="262" font-size="11.5" font-weight="600" fill="#5A6172">snapshot + rollback</text>
+
+    <rect x="416" y="198" width="180" height="72" rx="12" fill="#FFFFFF" stroke="#E9EAF0"/>
+    <text x="430" y="224">js/session.mjs</text>
+    <text x="430" y="246" font-size="11.5" font-weight="600" fill="#5A6172">pending-session +</text>
+    <text x="430" y="262" font-size="11.5" font-weight="600" fill="#5A6172">demo migration (pure)</text>
+
+    <rect x="608" y="198" width="220" height="72" rx="12" fill="#FFFFFF" stroke="#E9EAF0"/>
+    <text x="622" y="224">js/time.mjs</text>
+    <text x="622" y="246" font-size="11.5" font-weight="600" fill="#5A6172">local-calendar time</text>
+    <text x="622" y="262" font-size="11.5" font-weight="600" fill="#5A6172">timezone-correct</text>
+  </g>
+
+  <!-- module row 2 -->
+  <g font-size="13" font-weight="800" fill="#16182B">
+    <rect x="32" y="286" width="244" height="72" rx="12" fill="#FFFFFF" stroke="#E9EAF0"/>
+    <text x="46" y="312">js/activities.mjs</text>
+    <text x="46" y="334" font-size="11.5" font-weight="600" fill="#5A6172">catalog: engine fields + EN</text>
+    <text x="46" y="350" font-size="11.5" font-weight="600" fill="#5A6172">single source of activity ids</text>
+
+    <rect x="288" y="286" width="244" height="72" rx="12" fill="#FFFFFF" stroke="#E9EAF0"/>
+    <text x="302" y="312">js/activities-pt.mjs</text>
+    <text x="302" y="334" font-size="11.5" font-weight="600" fill="#5A6172">PT-BR display overlay</text>
+    <text x="302" y="350" font-size="11.5" font-weight="600" fill="#5A6172">same ids, no engine fields</text>
+
+    <rect x="544" y="286" width="140" height="72" rx="12" fill="#FFFFFF" stroke="#E9EAF0"/>
+    <text x="558" y="312">js/i18n.mjs</text>
+    <text x="558" y="334" font-size="11.5" font-weight="600" fill="#5A6172">PT-BR / EN</text>
+    <text x="558" y="350" font-size="11.5" font-weight="600" fill="#5A6172">interface strings</text>
+
+    <rect x="696" y="286" width="132" height="72" rx="12" fill="#FFFFFF" stroke="#E9EAF0"/>
+    <text x="710" y="312">js/demo.mjs</text>
+    <text x="710" y="334" font-size="11.5" font-weight="600" fill="#5A6172">synthetic,</text>
+    <text x="710" y="350" font-size="11.5" font-weight="600" fill="#5A6172">seeded generator</text>
+  </g>
+
+  <!-- storage + PWA base -->
+  <rect x="32" y="378" width="392" height="60" rx="12" fill="#FFFFFF" stroke="#E9EAF0"/>
+  <text x="48" y="404" font-size="14" font-weight="800" fill="#16182B">Browser localStorage</text>
+  <text x="48" y="424" font-size="11.5" font-weight="600" fill="#5A6172">the only database — data never leaves the device</text>
+
+  <rect x="436" y="378" width="392" height="60" rx="12" fill="#E4EFE7" stroke="#CBE4D4"/>
+  <text x="452" y="404" font-size="14" font-weight="800" fill="#1E5B41">sw.js + manifest.webmanifest</text>
+  <text x="452" y="424" font-size="11.5" font-weight="600" fill="#3A6b52">versioned cache-first shell · installable · works offline</text>
+</svg>

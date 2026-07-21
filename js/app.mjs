@@ -2,6 +2,7 @@
 // Persistence lives in storage.mjs; domain rules live in engine.mjs;
 // local-calendar time lives in time.mjs. This file only wires them to the DOM.
 import { ACTIVITIES, CAT_LABEL, COMPOSITION_IDS, MINS, MILESTONES, WINDOWS } from './activities.mjs';
+import { ACTIVITIES_PT } from './activities-pt.mjs';
 import { defaultState, getLevel, applyLog, replayState, rewardObservation,
          evaluateTemporalRules, milestoneProgress, currentFocus, weightedPick,
          hashStr, mulberry32, scoreActivities } from './engine.mjs';
@@ -9,7 +10,7 @@ import { localDateKey, sessionDayKey, addDays, fmtElapsed, finishSession } from 
 import { makeRepo, migrateStore, importBackup, buildExport, appendLog, SCHEMA_VERSION } from './storage.mjs';
 import { I18N } from './i18n.mjs';
 import { logTimestampFor, pendingRestore, canStartSession, discardPending, promotedWindow } from './session.mjs';
-import { generateDemoData, DEMO_PROFILE } from './demo.mjs';
+import { generateDemoData, DEMO_PROFILE, DEMO_DATA_VERSION, migrateDemoProfile } from './demo.mjs';
 
 // The app assumes common household manipulatives (interlocking cubes, small toy
 // counters, dice, paper and pen) — see the activity catalog for what each uses.
@@ -26,6 +27,16 @@ function t(k){ const d=I18N[LANG]||I18N.en; return (d[k]!==undefined?d[k]:(I18N.
 const msLabel=m=>{ const v=t('ms_'+m.id); return v!=='ms_'+m.id?v:m.label; };
 const msDetail=m=>{ const v=t('msd_'+m.id); return v!=='msd_'+m.id?v:m.detail; };
 function setLang(l){ LANG=l; repo.saveLang(l); applyLang(); }
+// Localized view of an activity: engine fields (weight/chapter/category/pool)
+// always come from the catalog; the display fields (name, materials, levels,
+// layout, script, camo_script, teaches) come from the PT overlay when the
+// interface is Portuguese. Engine and validation code keep using ACTIVITIES.
+function actView(id){
+  const base=ACTIVITIES[id];
+  if(!base || LANG!=='pt') return base;
+  const pt=ACTIVITIES_PT[id];
+  return pt ? { ...base, ...pt } : base;
+}
 function applyLang(){
   document.documentElement.lang = LANG==='pt' ? 'pt-BR' : 'en';
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-i18n')); });
@@ -114,7 +125,7 @@ function buildPlanPickers(){
         `<optgroup label="── ${t('cat_'+cat)} ──">`+
         ids.map(id=>{
           const isDone=done.has(id);
-          return `<option value="${id}" ${isDone?'disabled':''}>${ACTIVITIES[id].name}${isDone?t('done_today'):''}</option>`;
+          return `<option value="${id}" ${isDone?'disabled':''}>${actView(id).name}${isDone?t('done_today'):''}</option>`;
         }).join('')+`</optgroup>`).join('');
   });
 }
@@ -253,7 +264,7 @@ function renderSessionBar(){
     <div class="sessionbar fade">
       <div class="si">
         <div class="st1">${t('sess_active')}</div>
-        <div class="st2">${WIN_ICON[a.window]||''} ${t('w_'+a.window)} · ${ACTIVITIES[a.activity].name}</div>
+        <div class="st2">${WIN_ICON[a.window]||''} ${t('w_'+a.window)} · ${actView(a.activity).name}</div>
       </div>
       <span class="stime" id="sessTimer">${fmtElapsed(a.startedAt)}</span>
       <button onclick="endSession()">${t('sess_end')}</button>
@@ -287,7 +298,7 @@ function catStyle(cat){
   return `background:var(--c-${cat}-bg);color:var(--c-${cat})`;
 }
 function renderBlueprint(actId, winKey, reasons){
-  const act=ACTIVITIES[actId]; const win=WINDOWS[winKey];
+  const act=actView(actId); const win=WINDOWS[winKey];
   const state=getState(); const isCamo=state.camouflageActive;
   const script=isCamo?act.camo_script:act.script;
   const lvl=getLevel(state,actId);
@@ -385,7 +396,7 @@ function saveLog(e){
     if(!res.ok){ showToast(t('save_fail')); return; }
     renderPendingNote();
     const newLvl=getLevel(ns, entry.activity);
-    if(newLvl>prevLvl) showToast(t('toast_lvlup').replace('{a}',ACTIVITIES[entry.activity].name).replace('{l}',newLvl));
+    if(newLvl>prevLvl) showToast(t('toast_lvlup').replace('{a}',actView(entry.activity).name).replace('{l}',newLvl));
     else if(newLvl<prevLvl) showToast(t('toast_lvldown').replace('{l}',newLvl));
     else showToast(t('toast_saved'));
   }
@@ -482,7 +493,7 @@ function renderLogList(){
     card.append(daytop);
 
     for(const l of dayLogs){
-      const act=ACTIVITIES[l.activity];
+      const act=actView(l.activity);
       const cat=act && CAT_LABEL[act.category] ? act.category : 'counting'; // validated against the catalog
       const sess=mk('div','sesscard');
       sess.style.setProperty('--cat',`var(--c-${cat})`);
@@ -696,7 +707,7 @@ function renderAnalytics(){
   // level ups summary
   const lvlUps=Object.entries(state.levels||{}).filter(([id,l])=>ACTIVITIES[id]&&l!==(ACTIVITIES[id].startLevel||1));
   if(lvlUps.length) items.push({label:t('as_lvl'), on:true,
-    detail:lvlUps.map(([id,l])=>`${ACTIVITIES[id].name} → L${l}`).join(' · '), c:'#54499E', bg:'#ECE9F7'});
+    detail:lvlUps.map(([id,l])=>`${actView(id).name} → L${l}`).join(' · '), c:'#54499E', bg:'#ECE9F7'});
 
   document.getElementById('stateStatus').innerHTML=items.map(it=>`
     <div class="srow" style="background:${it.bg};border:1px solid ${it.c}22">
@@ -847,7 +858,7 @@ function buildActivitySelect(){
   document.getElementById('log-activity').innerHTML=
     Object.entries(groups).map(([cat,acts])=>
       `<optgroup label="── ${t('cat_'+cat)} ──">`+
-      acts.map(([id,a])=>`<option value="${id}">${a.name}</option>`).join('')+
+      acts.map(([id,a])=>`<option value="${id}">${actView(id).name}</option>`).join('')+
       `</optgroup>`).join('');
 }
 
@@ -859,13 +870,22 @@ function seedDemo(){
   saveLogs(logs);
   saveProfile(profile);
   saveState(replayState(logs));
+  repo.setDemoVersion(DEMO_DATA_VERSION);
 }
 
 // INIT
 migrate();
-if(new URLSearchParams(location.search).get('demo')==='1' && !getLogs().length){
-  seedDemo();
-  setTimeout(()=>showToast(t('demo_on')), 400);
+if(new URLSearchParams(location.search).get('demo')==='1'){
+  if(!getLogs().length){
+    seedDemo();
+    setTimeout(()=>showToast(t('demo_on')), 400);
+  } else {
+    // Returning demo visitor: normalize a stale synthetic profile (v1 seeded the
+    // name "Alex") so the title reads "Math Trail". Scoped to demo mode and only
+    // the recognizable demo profile — real logs, settings and data are untouched.
+    const res = migrateDemoProfile(getProfile(), repo.getDemoVersion());
+    if(res.changed){ saveProfile(res.profile); repo.setDemoVersion(res.version); }
+  }
 }
 applyLang();
 

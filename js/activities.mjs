@@ -510,8 +510,8 @@ dice_war:{ name:'Dice War: More · Fewer · Equal', teaches:['More vs. Fewer','E
   materials:'🎲🎲 2 dice',
   levels:{1:'Ask only \"who has MORE?\"',2:'Mix in FEWER and EQUAL rounds',3:'\"How many more do you have than me?\"'},
   layout:
-`  Each person rolls ONE die:
-  Papa: ┌─────┐  Isa:  ┌─────┐
+`  Each person rolls ONE die (you vs. child):
+        ┌─────┐        ┌─────┐
         │ • • │        │ •   │
         │ •   │        │     │
         │ • • │        │ •   │
