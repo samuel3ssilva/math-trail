@@ -40,7 +40,7 @@ logs (source of truth, append/edit/delete)
 ```
 
 Editing or deleting any past session triggers a full replay, so derived state
-can never drift from the log. "Today", streaks and the daily-plan seed use
+can never drift from the log. "Today", day-grouping and the daily-plan seed use
 **local calendar dates** from `time.mjs` (see [ADR-0002](adr/0002-clock-injection.md)).
 
 ## Persistence

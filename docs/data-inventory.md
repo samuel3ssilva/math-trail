@@ -8,7 +8,7 @@ not listed here.
 | Key | Type | Contents | Sensitivity |
 |---|---|---|---|
 | `mathtrail_logs` | JSON array | session logs: `{id, timestamp, window, activity, completion, engagement, ease, reward, mins?, notes?}` | **High** — behavioral observations of a child, incl. free text |
-| `mathtrail_state` | JSON object | derived adaptive state (levels, streaks, modes) | Medium — derivable from logs |
+| `mathtrail_state` | JSON object | derived adaptive state (levels, mastery, mode flags) | Medium — derivable from logs |
 | `mathtrail_profile` | JSON object | `{name, birth (YYYY-MM), chapter}` | **High** — identifies the child if filled |
 | `mathtrail_plan` | JSON object | today's suggested activity per window | Low |
 | `mathtrail_active` | JSON object | in-progress session `{window, activity, startedAt}` | Low |
