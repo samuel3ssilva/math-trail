@@ -7,15 +7,17 @@
    · chalkboard setup diagrams
    ═══════════════════════════════════════════════════════════ */
 :root{
-  --paper:#F7F3EA; --card:#FFFDF8; --ink:#26312B; --ink-soft:#54615A; --ink-faint:#75817A;
-  --line:#E5DFD2; --line-soft:#EFEAE0;
-  --brand:#2E7D5B; --brand-deep:#1E5B41; --brand-bg:#E4F0E8; --brand-line:#CBE4D4;
-  --board:#24382F; --chalk:#CFE8DA;
-  --dawn:#C97B12; --dawn-bg:#FBF0DC; --dawn-line:#F1DFBE;
-  --day:#2E6FBF;  --day-bg:#E7F0FA;  --day-line:#CFE0F2;
-  --dusk:#54499E; --dusk-bg:#ECE9F7; --dusk-line:#D8D3EE;
-  --danger:#C24040; --danger-bg:#FBEEEA;
-  --amber-ink:#96660F; --amber-bg:#FAF0DA; --amber-line:#EFDFBB;
+  /* Cool-paper identity: near-white blue-grey ground, ink navy, indigo action.
+     One accent, thin borders, near-flat surfaces — the calm kitchen-table look. */
+  --paper:#F6F7F9; --card:#FFFFFF; --ink:#16182B; --ink-soft:#5A6172; --ink-faint:#8A93A3;
+  --line:#E9EAF0; --line-soft:#F0F1F4;
+  --brand:#4F46E5; --brand-deep:#4338CA; --brand-bg:#ECEBFB; --brand-line:#D9D6F6;
+  --board:#1E2233; --chalk:#C9CEDE;
+  --dawn:#E0A11B; --dawn-bg:#FBF3DF; --dawn-line:#F0E2BC;
+  --day:#4F46E5;  --day-bg:#ECEBFB;  --day-line:#D9D6F6;
+  --dusk:#1E2233; --dusk-bg:#ECEDF2; --dusk-line:#D8DAE3;
+  --danger:#D6455D; --danger-bg:#FCEBEE;
+  --amber-ink:#8A6410; --amber-bg:#FBF3DF; --amber-line:#F0E2BC;
   --accent:var(--brand); --accent-d:var(--brand-deep);
   --c-subitizing:#6D3FC0; --c-subitizing-bg:#F0EBFA;
   --c-counting:#0A6E9E;   --c-counting-bg:#E6F2F8;
@@ -43,40 +45,37 @@
      Semantic, not component-bound. Three spacing tiers the eye can read:
      items in a group → groups in a section → sections. Everything below
      picks from these; component rules stop inventing their own numbers. */
-  --content-main:620px;        /* the reading column — the plan and the form live here */
-  --content-wide:1080px;       /* the outer bound on large screens */
-  --space-page-inline:16px;    /* page gutter */
+  --content-main:760px;        /* the plan column — comfortable reading width */
+  --content-wide:840px;        /* outer bound; a single calm column, no sprawl */
+  --space-page-inline:20px;    /* page gutter */
   --space-item:8px;            /* between items of one group */
   --space-group:14px;          /* between groups inside a section */
-  --space-section:22px;        /* between sections */
-  --space-card:18px;           /* card padding */
-  --space-card-tight:14px;     /* padding for compact/secondary cards */
+  --space-section:20px;        /* between sections */
+  --space-card:22px;           /* card padding — generous whitespace */
+  --space-card-tight:16px;     /* padding for compact/secondary cards */
   --control-h:48px;            /* inputs and primary actions */
-  --control-h-sm:40px;         /* compact controls; hit area padded to 44 */
+  --control-h-sm:44px;         /* compact controls; never below the hit floor */
   --hit-min:44px;              /* never smaller, however light it looks */
 
   /* surface hierarchy — page sits under raised, sunken recedes */
   --surface-page:var(--paper);
   --surface-raised:var(--card);
-  --surface-sunken:#F2EDE2;
-  --border-subtle:var(--line-soft);
-  --shadow-raised:0 1px 2px rgba(38,49,43,.05);
-  --shadow-lifted:0 6px 20px rgba(38,49,43,.10);
+  --surface-sunken:#F1F2F6;
+  --border-subtle:#E9EAF0;
+  --shadow-raised:0 1px 2px rgba(22,24,43,.04);
+  --shadow-lifted:0 2px 8px rgba(22,24,43,.08);
+  --r-card:16px;               /* the one card radius the screenshot uses */
 }
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px}
 body{font-family:var(--font-body);background:var(--paper);min-height:100vh;color:var(--ink);
-  font-size:15px;line-height:1.5;
-  background-image:radial-gradient(rgba(38,49,43,.045) 1px,transparent 1px);background-size:22px 22px}
+  font-size:15px;line-height:1.5}
 a{color:var(--brand)}a:hover{color:var(--brand-deep)}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
 :focus-visible{outline:var(--ring);outline-offset:2px;border-radius:6px}
 .hidden{display:none!important}
-.wrap{max-width:var(--content-main);margin:0 auto;padding:0 var(--space-page-inline) calc(96px + env(safe-area-inset-bottom))}
-.section{margin-bottom:var(--space-section)}
-.section>h2{padding:0 var(--space-card-tight)}
-.section>.sub{padding:0 var(--space-card-tight);margin-bottom:var(--space-group)}
-.card{background:var(--surface-raised);border:1px solid var(--border-subtle);border-radius:var(--r-lg);padding:var(--space-card);margin-bottom:var(--space-section);box-shadow:var(--shadow-raised)}
+.wrap{max-width:var(--content-wide);margin:0 auto;padding:0 var(--space-page-inline) calc(40px + env(safe-area-inset-bottom))}
+.card{background:var(--surface-raised);border:1px solid var(--border-subtle);border-radius:var(--r-card);padding:var(--space-card);margin-bottom:var(--space-section);box-shadow:var(--shadow-raised)}
 h1{font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:1.15}
 h2{font-family:var(--font-display);font-size:16.5px;font-weight:700;letter-spacing:-.2px;margin-bottom:var(--space-item)}
 h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.2px}
@@ -91,13 +90,39 @@ h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.2px}
 @media (prefers-reduced-motion:reduce){.fade,.pulse{animation:none}*{transition:none!important}}
 
 /* ── header ─────────────────────────────────────── */
-.header{display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:var(--space-section) var(--space-card-tight) var(--space-group)}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:var(--space-section) 2px var(--space-group)}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
-.logo{width:46px;height:46px;border-radius:16px;background:var(--brand-bg);border:1.5px solid var(--brand-line);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.logo{width:52px;height:52px;border-radius:50%;background:#E4EFE7;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+h1{font-size:23px}
 .hactions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.gear{font-size:17px;width:44px;height:44px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);color:var(--ink-soft);display:flex;align-items:center;justify-content:center}
+.gear{font-size:16px;width:var(--hit-min);height:var(--hit-min);border-radius:12px;background:var(--surface-sunken);border:1px solid var(--border-subtle);color:var(--ink-soft);display:flex;align-items:center;justify-content:center}
 .gear:active{transform:scale(.94)}
+/* language pill + mode pill — grouped controls, screenshot-right */
+.langtoggle{display:inline-flex;background:var(--surface-sunken);border:1px solid var(--border-subtle);border-radius:999px;padding:3px}
+.langtoggle button{min-height:38px;min-width:40px;padding:0 12px;border-radius:999px;font-size:13px;font-weight:800;color:var(--ink-faint)}
+.langtoggle button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow-raised)}
+.pill.mode-normal{background:var(--brand-bg);color:var(--brand-deep)}
+.pill.mode-story{background:var(--dawn-bg);color:var(--amber-ink)}
+.pill.mode-cool{background:var(--day-bg);color:var(--day)}
+#modeChip{font-weight:800}
+
+/* ── summary: four at-a-glance cards ────────────── */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:var(--space-section)}
+.sumcard{background:var(--card);border:1px solid var(--border-subtle);border-radius:var(--r-card);
+  padding:18px 14px;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;text-align:center;box-shadow:var(--shadow-raised)}
+.sumv{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.5px;color:var(--ink);line-height:1.05}
+.sumcard.wide .sumv{font-size:16px;line-height:1.2}
+.sumk{font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--ink-faint)}
+
+/* ── tabs: segmented control ────────────────────── */
+.tabs{display:flex;gap:4px;background:var(--surface-sunken);border:1px solid var(--border-subtle);
+  border-radius:14px;padding:5px;margin-bottom:var(--space-section)}
+.tabs button{flex:1;min-height:var(--hit-min);border-radius:10px;font-size:14.5px;font-weight:700;
+  color:var(--ink-faint);display:flex;align-items:center;justify-content:center}
+.tabs button.on,.tabs button[aria-current="page"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow-lifted)}
+.tabs button:active{transform:scale(.98)}
 
 /* ── hero: this week ────────────────────────────── */
 .hero{padding:18px 20px}
@@ -117,28 +142,32 @@ h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.2px}
 .cubes{display:flex;gap:4px;align-items:center}
 .cubes .ct{font-size:11.5px;font-weight:800;color:var(--ink-faint);margin-left:6px}
 
-/* ── bottom navigation ──────────────────────────── */
-.nav{position:fixed;bottom:0;left:0;right:0;z-index:60;background:var(--card);border-top:1.5px solid var(--line);
-  display:flex;justify-content:center;gap:2px;padding:6px 10px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(38,49,43,.06)}
-.nav button{flex:1;max-width:130px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px 5px;border-radius:12px;font-size:11.5px;font-weight:700;color:var(--ink-faint)}
-.nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.nav button.on,.nav button[aria-current="page"]{color:var(--brand-deep);background:var(--brand-bg)}
-.nav button:active{transform:scale(.95)}
-
 /* ── plan: session windows ──────────────────────── */
-/* One tinted surface per window — the activity inside is NOT a second card.
-   Secondary windows stay compact; the promoted one carries the composition. */
-.winblock{border-radius:var(--r-md);border:1px solid var(--wl,var(--line));background:var(--wb,#fff);
-  margin-bottom:var(--space-item);overflow:hidden;display:flex;flex-direction:column}
-.win-morning{--wc:var(--dawn);--wb:var(--dawn-bg);--wl:var(--dawn-line)}
-.win-afternoon{--wc:var(--day);--wb:var(--day-bg);--wl:var(--day-line)}
-.win-bedtime{--wc:var(--dusk);--wb:var(--dusk-bg);--wl:var(--dusk-line)}
-.winhead{display:flex;align-items:center;gap:10px;padding:var(--space-card-tight) var(--space-card-tight) var(--space-item)}
-.winhead .wicon{font-size:20px;flex-shrink:0}
+/* Three equal white cards — a small coloured dot is the only period cue.
+   No window is larger or louder than another (PR review: no clock dominance). */
+.wingrid{display:flex;flex-direction:column;gap:12px;margin-top:var(--space-group)}
+.winblock{border-radius:var(--r-card);border:1px solid var(--border-subtle);background:var(--card);
+  padding:16px;display:flex;flex-direction:column;gap:var(--space-group)}
+.win-morning{--wc:var(--dawn)}
+.win-afternoon{--wc:var(--day)}
+.win-bedtime{--wc:var(--dusk)}
+.winhead{display:flex;align-items:center;gap:11px}
+.wdot{width:11px;height:11px;border-radius:50%;background:var(--wc);flex-shrink:0}
 .winhead .wtxt{min-width:0;flex:1}
-.winhead .t{display:block;font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--ink)}
-.winhead .d{display:block;font-size:12px;font-weight:700;color:var(--wc)}
-.donechip{font-size:11px;font-weight:800;color:var(--brand-deep);background:var(--brand-bg);border:1px solid var(--brand-line);padding:4px 10px;border-radius:99px;white-space:nowrap}
+.winhead .t{display:block;font-family:var(--font-display);font-weight:700;font-size:15.5px;color:var(--ink)}
+.winhead .d{display:block;font-size:12.5px;font-weight:600;color:var(--ink-faint);margin-top:1px}
+.donechip{font-size:11px;font-weight:800;color:var(--ink-faint);background:var(--surface-sunken);border:1px solid var(--border-subtle);padding:4px 10px;border-radius:99px;white-space:nowrap}
+.donechip.now{color:var(--brand-deep);background:var(--brand-bg);border-color:var(--brand-line)}
+.donechip.started{color:var(--brand-deep);background:var(--brand-bg);border-color:var(--brand-line)}
+/* select (full width) + compact suggestion action, per the reference */
+.orrow{display:flex;gap:10px;align-items:stretch}
+.orrow select{flex:1;min-height:var(--control-h);margin:0}
+.suggestbtn{flex-shrink:0;width:var(--control-h);min-height:var(--control-h);border-radius:12px;
+  background:var(--brand);color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.14)}
+.suggestbtn:active{transform:scale(.95)}
+/* the clock's window: a whisper, not a size change */
+.winblock.is-now{border-color:var(--brand-line)}
 
 /* ── blueprint (activity card) ──────────────────── */
 .blueprint{border-left:5px solid var(--cat,var(--brand))}
@@ -256,45 +285,9 @@ select:focus,input:focus{border-color:var(--brand)}
 .mrow button{flex:1;padding:12px;min-height:46px;border-radius:12px;font-weight:800;font-size:13px}
 .btn-soft{background:var(--brand-bg);color:var(--brand-deep)}
 .btn-danger{background:var(--danger-bg);color:var(--danger)}
-.langtoggle{display:flex;background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:3px;font-size:13px;font-weight:800}
-.langtoggle button{flex:1;padding:9px;border-radius:9px;color:var(--ink-faint)}
-.langtoggle button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(38,49,43,.14)}
-
-/* ≤430px: the window header must wrap gracefully (audit V2) — the title
-   never breaks mid-token; the state chip is what drops to its own line. */
-@media (max-width:430px){
-  .winhead .t{font-size:14px;white-space:nowrap}
-  .winhead .wtxt{min-width:0;flex:1}
-  .winhead .d{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .donechip{font-size:10.5px;padding:3px 8px}
-  .bphead h3{font-size:19px}
-}
-
-/* ── daily plan + active session ────────────────── */
-/* Flat by default: the tint already groups it. No border, no inner card. */
-.planblock{display:block;width:100%;text-align:left;background:none;border:none;border-radius:0;
-  padding:0 var(--space-card-tight) var(--space-item);cursor:pointer}
-.planblock:active{transform:scale(.99)}
-.planblock .pcat{display:block;font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.8px}
-.planblock .pname{display:block;font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--ink);margin:2px 0 3px}
-.planblock .pmeta{display:block;font-size:12px;font-weight:700;color:var(--ink-faint)}
-.actrow2{display:flex;gap:var(--space-item);padding:0 var(--space-card-tight) var(--space-item);margin-top:auto}
-/* ONE primary action color (audit V1): windows keep identity via card tint,
-   icon and border — never via the main button. */
-.startbtn{flex:1;min-height:var(--hit-min);border-radius:12px;background:var(--brand);color:#fff;font-weight:800;font-size:14px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.16)}
-.startbtn:active{transform:scale(.97)}
-.swapbtn{flex-shrink:0;padding:0 14px;min-height:var(--hit-min);border-radius:12px;border:1.5px solid var(--wl,var(--line));background:#fff;color:var(--wc,var(--ink-soft));font-weight:800;font-size:13px}
-.pickmore{padding:0 var(--space-card-tight) var(--space-card-tight)}
-.pickmore summary{list-style:none;cursor:pointer;display:flex;align-items:center;min-height:var(--hit-min);
-  font-size:var(--fs-xs);font-weight:800;color:var(--ink-faint)}
-.pickmore summary::-webkit-details-marker{display:none}
-.pickmore summary::before{content:'\25B8';margin-right:6px;transition:transform .2s}
-.pickmore[open] summary::before{transform:rotate(90deg)}
-.orpick{padding-top:var(--space-item)}
-.orpick select{min-height:var(--control-h-sm);font-size:var(--fs-sm)}
-.orpick select{width:100%}
+/* ── active session ─────────────────────────────── */
 #sessionBar{position:sticky;top:8px;z-index:55}
-.sessionbar{display:flex;align-items:center;gap:10px;background:var(--brand-deep);color:#fff;border-radius:14px;padding:10px 14px;margin-bottom:12px;box-shadow:0 6px 18px rgba(30,91,65,.35)}
+.sessionbar{display:flex;align-items:center;gap:10px;background:var(--brand-deep);color:#fff;border-radius:14px;padding:10px 14px;margin-bottom:12px;box-shadow:var(--shadow-lifted)}
 .sessionbar .si{min-width:0;flex:1}
 .sessionbar .st1{font-size:13px;font-weight:800}
 .sessionbar .st2{font-size:11.5px;font-weight:600;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -302,29 +295,14 @@ select:focus,input:focus{border-color:var(--brand)}
 .sessionbar button{background:rgba(255,255,255,.16);border-radius:9px;padding:7px 10px;font-size:11.5px;font-weight:800;color:#fff;white-space:nowrap}
 .sessionbar button.ghost{background:none;text-decoration:underline;opacity:.85;padding:7px 4px}
 .hint{font-size:12px;color:var(--ink-faint);font-weight:600;margin:4px 0 8px}
-.restbtn{width:100%;margin-top:2px;padding:12px;min-height:46px;border-radius:12px;border:1.5px dashed var(--line);background:none;color:var(--ink-faint);font-weight:700;font-size:13px}
-.restbtn:active{background:var(--paper)}
-
-/* ── plan emphasis: one window leads ────────────────
-   Secondary windows keep every capability, just less ink: the category
-   eyebrow and the "why" line belong to the one being proposed now. */
-.winblock:not(.is-now) .pcat,
-.winblock:not(.is-now) .pwhy{display:none}
-.winblock:not(.is-now) .planblock .pname{font-size:14.5px}
-.winblock:not(.is-now) .startbtn{background:none;color:var(--brand-deep);
-  border:1.5px solid var(--brand-line);box-shadow:none;font-size:13.5px}
-.winblock.is-now{background:var(--surface-raised);border-color:var(--wl,var(--line));
-  box-shadow:var(--shadow-raised)}
-.winblock.is-now .winhead{padding-bottom:var(--space-item)}
-.winblock.is-now .planblock{background:var(--wb,#fff);border-radius:var(--r-sm);
-  margin:0 var(--space-card-tight) var(--space-item);padding:var(--space-item) var(--space-item) 10px;width:auto}
-.winblock.is-now .planblock .pname{font-size:17px;margin:3px 0 4px}
-.winblock.is-now .startbtn{min-height:var(--control-h)}
+/* rest day: a quiet, honest opt-out — never a penalty */
+.restbtn{display:block;margin:var(--space-group) auto 0;padding:8px 12px;min-height:var(--hit-min);
+  background:none;color:var(--ink-faint);font-weight:700;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.restbtn:active{color:var(--ink-soft)}
 
 /* ── workflow: skip link, plan reason, pending-save, system details ── */
 .skiplink{position:absolute;left:-9999px;top:8px;z-index:100;background:var(--brand-deep);color:#fff;padding:10px 16px;border-radius:10px;font-weight:800;font-size:14px}
 .skiplink:focus{left:12px}
-.planblock .pwhy{display:block;font-size:12px;font-weight:600;color:var(--brand-deep);margin-top:4px}
 .pendnote{display:none;background:var(--brand-bg);border:1px solid var(--brand-line);color:var(--brand-deep);font-size:13px;font-weight:700;border-radius:var(--r-sm);padding:10px 12px;margin-bottom:6px}
 .pendnote button{color:var(--brand-deep);font-weight:800;text-decoration:underline;font-size:13px;min-height:44px;padding:0 4px}
 .sysdetails summary{list-style:none;cursor:pointer;display:flex;align-items:center;min-height:44px;gap:8px}
@@ -341,36 +319,20 @@ select:focus,input:focus{border-color:var(--brand)}
 .cube.big.rest{background:var(--dusk-bg);border-color:var(--dusk-line);color:var(--dusk);font-size:14px}
 .datechip{display:inline-block;background:var(--brand-bg);color:var(--brand-deep);border:1px solid var(--brand-line);border-radius:99px;padding:3px 11px;font-size:12px;font-weight:800;margin-bottom:10px}
 
-/* ── desktop layout ─────────────────────────────── */
-/* ── desktop: an intentional composition, not a stretched phone ──────
-   The plan keeps a comfortable reading column and the windows stay stacked
-   (three equal columns made three equally loud proposals and left the action
-   buttons on three different baselines). Reflection moves beside the plan as
-   a lighter secondary column instead of adding scroll below it. */
-@media (min-width:1000px){
-  .wrap{max-width:var(--content-wide)}
-  #bannerZone{max-width:var(--content-wide)}
-
-  #tab-content-plan{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
-    gap:0 var(--space-section);align-items:start}
-  #tab-content-plan>.section,#tab-content-plan>#blueprintOutput{grid-column:1;min-width:0}
-  #tab-content-plan>#weekCard{grid-column:2;grid-row:1/span 2;position:sticky;top:var(--space-section)}
-  /* the secondary column carries less ink than the plan it sits next to */
-  #tab-content-plan>#weekCard{background:none;border:none;box-shadow:none;padding:0 0 0 var(--space-section);
-    border-left:1px solid var(--border-subtle)}
-
-  /* forms and history keep a reading width instead of spanning the page */
-  #tab-content-log,#tab-content-history,#tab-content-analytics{max-width:var(--content-main);margin-inline:auto}
-  #saveBtn{width:auto;min-width:220px;display:block;margin-left:auto}
-
-  .hero-grid{display:block}
-  .hero-grid .focusline{border-top:none;border-left:1.5px dashed var(--line);margin-top:0;padding:2px 0 2px 26px}
+/* ── responsive ─────────────────────────────────────
+   One calm centred column at every width — the desktop is the reference and
+   it is deliberately NOT a dashboard. Only the summary grid adapts. */
+@media (min-width:820px){
+  .hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:0 30px;align-items:start}
+  .hero-grid .focusline{border-top:none;border-left:1px solid var(--border-subtle);margin-top:0;padding:2px 0 2px 26px}
   .statgrid{grid-template-columns:repeat(4,1fr)}
-
-  /* the nav is a way back, not a fixture competing with the plan */
-  .nav{left:50%;transform:translateX(-50%);width:min(520px,calc(100% - 32px));bottom:16px;
-    border:1px solid var(--border-subtle);border-radius:18px;box-shadow:var(--shadow-lifted)}
 }
-@media (min-width:1000px) and (max-width:1180px){
-  #tab-content-plan>#weekCard{padding-left:var(--space-group)}
+/* phones: two columns of summary cards, never four squeezed into a row */
+@media (max-width:560px){
+  .summary{grid-template-columns:1fr 1fr}
+  .sumcard.wide{grid-column:1/-1}
+}
+@media (max-width:380px){
+  :root{--space-page-inline:14px;--space-card:18px}
+  .winblock{padding:14px}
 }
