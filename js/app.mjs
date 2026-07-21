@@ -80,39 +80,25 @@ function buildPlanPickers(){
   const done=doneTodayIds();
   const today=localDateKey();
   const todayLogs=getLogs().filter(l=>sessionDayKey(l)===today);
-  const plan=getDailyPlan();
-  // One window carries the composition; the others stay available but quiet.
+  // The clock nudges which window shows a small "agora" marker — never its size.
+  // All three windows stay visually equal (PR review: no clock-driven dominance).
   const promoted=promotedWindow(new Date().getHours(), todayLogs.map(l=>l.window));
   Object.keys(WINDOWS).forEach(winKey=>{
-    const block=document.getElementById('plan-'+winKey)?.closest('.winblock');
+    const block=document.getElementById('win-'+winKey);
     if(block) block.classList.toggle('is-now', winKey===promoted);
-    const more=document.getElementById('more-'+winKey);
-    if(more) more.open = (winKey===promoted);
     const chip=document.getElementById('done-'+winKey);
     if(chip){
       const n=todayLogs.filter(l=>l.window===winKey).length;
       const act=getActive();
       if(act && act.window===winKey){
-        chip.classList.remove('hidden'); chip.textContent='▶ '+t('chip_started');
+        chip.classList.remove('hidden'); chip.className='donechip started'; chip.textContent='▶ '+t('chip_started');
+      } else if(n){
+        chip.classList.remove('hidden'); chip.className='donechip'; chip.textContent=t('done_win');
+      } else if(winKey===promoted){
+        chip.classList.remove('hidden'); chip.className='donechip now'; chip.textContent=t('chip_now');
       } else {
-        chip.classList.toggle('hidden',!n);
-        chip.textContent=t('done_win');
+        chip.classList.add('hidden');
       }
-    }
-    const pb=document.getElementById('plan-'+winKey);
-    if(pb){
-      const a=ACTIVITIES[plan[winKey]];
-      // Surface WHY this was picked: top reason from the live scoring pass.
-      let reason='';
-      if(a){
-        const entry=scorePool(winKey,null).find(x=>x.id===plan[winKey]);
-        if(entry&&entry.reasons.length) reason=`<span class="pwhy">${entry.reasons[0]}</span>`;
-      }
-      pb.innerHTML=a?`
-        <span class="pcat" style="color:var(--c-${a.category})">${t('plan_pick')} · ${t('cat_'+a.category)}</span>
-        <span class="pname">${a.name}</span>
-        <span class="pmeta">${a.materials} · ~${MINS[plan[winKey]]||4} ${t('min_suffix')}</span>${reason}`
-        :`<span class="pmeta">${t('no_pick')}</span>`;
     }
     const sel=document.getElementById('pick-'+winKey);
     if(!sel) return;
@@ -238,19 +224,25 @@ function restorePendingIntoForm(){
   return true;
 }
 
-function startSession(winKey){
+// Start a timed session for an explicit activity (the one shown in the
+// blueprint). Every pending/active guard is preserved — the pending-session
+// feature depends on this path unchanged.
+function startSessionFor(winKey, actId){
   if(!canStartSession(repo.getPending()).ok){
     // A finished session is waiting — resolve it before starting another.
     restorePendingIntoForm(); showTab('log'); showToast(t('sess_pending'));
     return;
   }
   if(getActive()){ showToast(t('sess_busy')); return; }
-  const plan=getDailyPlan();
-  const actId=plan[winKey]; if(!actId) return;
+  if(!ACTIVITIES[actId]) return;
   setActive({window:winKey, activity:actId, startedAt:new Date().toISOString()});
   renderSessionBar(); buildPlanPickers();
-  viewPlan(winKey);
   showToast(t('toast_started'));
+}
+function startSession(winKey){
+  const plan=getDailyPlan();
+  startSessionFor(winKey, plan[winKey]);
+  if(getActive()) viewPlan(winKey);
 }
 function renderSessionBar(){
   const el=document.getElementById('sessionBar');
@@ -329,8 +321,9 @@ function renderBlueprint(actId, winKey, reasons){
       <span class="eyebrow">${t('parent_script')}</span>
       <div class="scriptbox">${steps}</div>
       <div class="actrow">
-        <button class="primary" onclick="prefillLog('${actId}','${winKey}')">${t('log_btn')}</button>
-        <button class="ghostbtn" onclick="reroll()">↻ ${t('btn_reroll')}</button>
+        <button class="primary" onclick="startSessionFor('${winKey}','${actId}')">▶ ${t('btn_start')}</button>
+        <button class="ghostbtn" onclick="prefillLog('${actId}','${winKey}')">${t('log_btn')}</button>
+        <button class="ghostbtn" onclick="reroll()" aria-label="${t('btn_reroll')}">↻</button>
       </div>
     </div>`;
   document.getElementById('blueprintOutput').classList.remove('hidden');
@@ -558,10 +551,13 @@ function renderBanners(){
   if(obs.status==='observation')
     zone.innerHTML+=`<div class="banner" style="background:#1E5B41">${t('banner_reward').replace('{t}',obs.treatCount).replace('{o}',obs.otherCount)}</div>`;
 
+  // The header chip surfaces the current suggestion mode — Normal by default,
+  // Story/Cool-Down when a temporal rule is active. It is a state readout, not
+  // a difficulty control, and never evaluates the child.
   const chip=document.getElementById('modeChip');
-  if(state.camouflageActive){ chip.classList.remove('hidden'); chip.textContent=t('chip_story'); chip.style.cssText='background:var(--amber-bg);color:var(--amber-ink)'; }
-  else if(state.cooldownActive){ chip.classList.remove('hidden'); chip.textContent=t('chip_cool'); chip.style.cssText='background:var(--day-bg);color:var(--day)'; }
-  else { chip.classList.add('hidden'); }
+  if(state.camouflageActive){ chip.className='pill mode-story'; chip.textContent=t('chip_story'); }
+  else if(state.cooldownActive){ chip.className='pill mode-cool'; chip.textContent=t('chip_cool'); }
+  else { chip.className='pill mode-normal'; chip.textContent=t('chip_normal'); }
 }
 
 function ageString(){
@@ -580,7 +576,36 @@ function renderHeader(){
   document.getElementById('headerSub').textContent = p.name ? ageString() : t('app_tagline');
 }
 
+// Four calm orientation cards. Every value is a plain count or a label — no
+// streaks, no percentages, nothing that grades the child (PR review). Built with
+// createElement/textContent, so nothing user-influenced ever reaches markup.
+function renderSummary(){
+  const el=document.getElementById('summaryRow'); if(!el) return;
+  const logs=getLogs();
+  const now=new Date();
+  const weekKeys=new Set([...Array(7)].map((_,i)=>localDateKey(addDays(now,-(6-i)))));
+  const week=logs.filter(l=>weekKeys.has(sessionDayKey(l)));
+  const explored=new Set(logs.map(l=>l.activity).filter(a=>ACTIVITIES[a])).size;
+  const todayWins=logs.filter(l=>sessionDayKey(l)===localDateKey(now)).map(l=>l.window);
+  const promoted=promotedWindow(now.getHours(), todayWins);
+  const focus=currentFocus(logs);
+  const cards=[
+    { v:String(week.length), k:t('sum_sessions') },
+    { v:String(explored),    k:t('sum_explored') },
+    { v:t('w_'+promoted),    k:t('sum_moment') },
+    { v:focus?msLabel(focus):t('sum_focus_none'), k:t('sum_focus'), wide:true }
+  ];
+  el.textContent='';
+  for(const c of cards){
+    const card=document.createElement('div'); card.className='sumcard'+(c.wide?' wide':'');
+    const v=document.createElement('div'); v.className='sumv'; v.textContent=c.v;
+    const k=document.createElement('div'); k.className='sumk'; k.textContent=c.k;
+    card.append(v,k); el.append(card);
+  }
+}
+
 function renderWeekCard(){
+  renderSummary();
   const logs=getLogs();
   const now=new Date();
   const todayKey=localDateKey(now);
@@ -848,7 +873,7 @@ if(restorePendingIntoForm()) showTab('log');
 // Inline onclick handlers live in index.html — expose the API they need.
 Object.assign(window, { setLang, showTab, openSettings, closeSettings, saveSettings,
   exportData, importData, clearLogs, saveLog, editLog, deleteLog, cancelEdit,
-  startSession, endSession, discardSession, swapPlan, viewPlan, pickFromList,
+  startSession, startSessionFor, endSession, discardSession, swapPlan, viewPlan, pickFromList,
   generateBlueprint, reroll, prefillLog, markRestDay });
 
 // Backdrop click closes settings (clicks on the ::backdrop land on the
