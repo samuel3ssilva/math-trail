@@ -1,6 +1,6 @@
 {
   "name": "math-trail",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "A calm, adaptive early-math practice planner for parents of toddlers. Zero dependencies, offline-first.",
   "type": "module",
   "scripts": {
