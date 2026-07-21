@@ -7,7 +7,7 @@ const SHELL = [
   './', './index.html', './styles.css',
   './js/app.mjs', './js/engine.mjs', './js/activities.mjs',
   './js/time.mjs', './js/storage.mjs', './js/demo.mjs', './js/i18n.mjs',
-  './js/session.mjs',
+  './js/session.mjs', './js/activities-pt.mjs',
   './manifest.webmanifest'
 ];
 
