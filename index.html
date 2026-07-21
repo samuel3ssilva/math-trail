@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Math Trail — um planejador calmo e adaptativo de matemática inicial para pais de crianças pequenas">
-<meta name="theme-color" content="#F7F3EA">
+<meta name="theme-color" content="#F6F7F9">
 <title>Math Trail — prática de matemática para os pequenos</title>
 
 <link rel="stylesheet" href="styles.css">
@@ -29,7 +29,11 @@
       </div>
     </div>
     <div class="hactions">
-      <span id="modeChip" class="pill hidden"></span>
+      <div class="langtoggle" role="group" data-i18n-aria="al_lang" aria-label="Idioma">
+        <button id="lang-pt" type="button" onclick="setLang('pt')">PT</button>
+        <button id="lang-en" type="button" onclick="setLang('en')">EN</button>
+      </div>
+      <span id="modeChip" class="pill"></span>
       <button class="gear" onclick="openSettings()" data-i18n-aria="al_settings" aria-label="Configurações">⚙</button>
     </div>
   </header>
@@ -37,75 +41,62 @@
   <!-- ACTIVE SESSION -->
   <div id="sessionBar"></div>
 
+  <!-- AT-A-GLANCE — four calm, non-evaluative orientation cards -->
+  <section class="summary" id="summaryRow" aria-label="Resumo"></section>
+
+  <!-- TABS — a light segmented control, not a floating bar -->
+  <nav class="tabs" data-i18n-aria="al_nav" aria-label="Navegação principal">
+    <button id="tab-plan" class="on" onclick="showTab('plan')" data-i18n="tab_plan">Plano</button>
+    <button id="tab-log" onclick="showTab('log')" data-i18n="tab_log">Registrar</button>
+    <button id="tab-history" onclick="showTab('history')" data-i18n="tab_history">Histórico</button>
+    <button id="tab-analytics" onclick="showTab('analytics')" data-i18n="tab_stats">Progresso</button>
+  </nav>
+
   <main id="main">
 
   <!-- ═══ PLAN — today first: the parent's question is "what do we do now?" ═══ -->
   <div id="tab-content-plan" class="fade">
-    <div class="section">
+    <div class="card">
       <h2 data-i18n="plan_title">Sessões de hoje</h2>
-      <p class="sub" data-i18n="plan_sub">Estas são oportunidades possíveis, não três obrigações diárias — escolha uma, várias ou nenhuma. Uma atividade curta já é uma vitória.</p>
+      <p class="sub plan-sub" data-i18n="plan_sub">Estas são oportunidades possíveis, não três obrigações diárias — escolha uma, várias ou nenhuma. Uma atividade curta já é uma vitória.</p>
       <div class="wingrid">
-      <div class="winblock win-morning">
+      <div class="winblock win-morning" id="win-morning">
         <div class="winhead">
-          <span class="wicon" aria-hidden="true">🌅</span>
+          <span class="wdot" aria-hidden="true"></span>
           <span class="wtxt"><span class="t" data-i18n="wh_morning">Manhã · 8–11h</span><span class="d" data-i18n="wd_morning">Leve · na mesa do café</span></span>
           <span class="donechip hidden" id="done-morning"></span>
         </div>
-        <button type="button" class="planblock" id="plan-morning" onclick="viewPlan('morning')"></button>
-        <div class="actrow2">
-          <button class="startbtn" onclick="startSession('morning')">▶&nbsp;<span data-i18n="btn_start">Iniciar</span></button>
-          <button class="swapbtn" onclick="swapPlan('morning')">↻ <span data-i18n="btn_swap">Trocar</span></button>
+        <div class="orrow">
+          <select id="pick-morning" onchange="pickFromList('morning')" data-i18n-aria="al_pick_morning" aria-label="Escolher atividade"></select>
+          <button type="button" class="suggestbtn" onclick="generateBlueprint('morning')" data-i18n-aria="al_suggest" aria-label="Sugestão inteligente">✦</button>
         </div>
-        <details class="pickmore" id="more-morning">
-          <summary data-i18n="pick_other">Escolher outra atividade</summary>
-          <div class="orpick">
-            <select id="pick-morning" onchange="pickFromList('morning')" data-i18n-aria="al_pick_morning" aria-label="Escolher atividade"></select>
-          </div>
-        </details>
       </div>
-      <div class="winblock win-afternoon">
+      <div class="winblock win-afternoon" id="win-afternoon">
         <div class="winhead">
-          <span class="wicon" aria-hidden="true">☀️</span>
+          <span class="wdot" aria-hidden="true"></span>
           <span class="wtxt"><span class="t" data-i18n="wh_afternoon">Tarde · 12–17h</span><span class="d" data-i18n="wd_afternoon">Foco total · todas as atividades</span></span>
           <span class="donechip hidden" id="done-afternoon"></span>
         </div>
-        <button type="button" class="planblock" id="plan-afternoon" onclick="viewPlan('afternoon')"></button>
-        <div class="actrow2">
-          <button class="startbtn" onclick="startSession('afternoon')">▶&nbsp;<span data-i18n="btn_start">Iniciar</span></button>
-          <button class="swapbtn" onclick="swapPlan('afternoon')">↻ <span data-i18n="btn_swap">Trocar</span></button>
+        <div class="orrow">
+          <select id="pick-afternoon" onchange="pickFromList('afternoon')" data-i18n-aria="al_pick_afternoon" aria-label="Escolher atividade"></select>
+          <button type="button" class="suggestbtn" onclick="generateBlueprint('afternoon')" data-i18n-aria="al_suggest" aria-label="Sugestão inteligente">✦</button>
         </div>
-        <details class="pickmore" id="more-afternoon">
-          <summary data-i18n="pick_other">Escolher outra atividade</summary>
-          <div class="orpick">
-            <select id="pick-afternoon" onchange="pickFromList('afternoon')" data-i18n-aria="al_pick_afternoon" aria-label="Escolher atividade"></select>
-          </div>
-        </details>
       </div>
-      <div class="winblock win-bedtime">
+      <div class="winblock win-bedtime" id="win-bedtime">
         <div class="winhead">
-          <span class="wicon" aria-hidden="true">🌙</span>
+          <span class="wdot" aria-hidden="true"></span>
           <span class="wtxt"><span class="t" data-i18n="wh_bedtime">Noite · ~20h</span><span class="d" data-i18n="wd_bedtime">Rápido e calmo · máx. 3 min</span></span>
           <span class="donechip hidden" id="done-bedtime"></span>
         </div>
-        <button type="button" class="planblock" id="plan-bedtime" onclick="viewPlan('bedtime')"></button>
-        <div class="actrow2">
-          <button class="startbtn" onclick="startSession('bedtime')">▶&nbsp;<span data-i18n="btn_start">Iniciar</span></button>
-          <button class="swapbtn" onclick="swapPlan('bedtime')">↻ <span data-i18n="btn_swap">Trocar</span></button>
+        <div class="orrow">
+          <select id="pick-bedtime" onchange="pickFromList('bedtime')" data-i18n-aria="al_pick_bedtime" aria-label="Escolher atividade"></select>
+          <button type="button" class="suggestbtn" onclick="generateBlueprint('bedtime')" data-i18n-aria="al_suggest" aria-label="Sugestão inteligente">✦</button>
         </div>
-        <details class="pickmore" id="more-bedtime">
-          <summary data-i18n="pick_other">Escolher outra atividade</summary>
-          <div class="orpick">
-            <select id="pick-bedtime" onchange="pickFromList('bedtime')" data-i18n-aria="al_pick_bedtime" aria-label="Escolher atividade"></select>
-          </div>
-        </details>
       </div>
       </div>
-      <button type="button" class="restbtn" onclick="markRestDay()">🌙 <span data-i18n="btn_rest">Hoje não é um bom momento</span></button>
+      <button type="button" class="restbtn" onclick="markRestDay()"><span data-i18n="btn_rest">Hoje não é um bom momento</span></button>
     </div>
     <div id="blueprintOutput" class="hidden"></div>
-
-    <!-- WEEK RHYTHM — reflection, below today's plan on purpose -->
-    <section class="card hero fade" id="weekCard"></section>
   </div>
 
   <!-- ═══ LOG ═══ -->
@@ -184,6 +175,8 @@
 
   <!-- ═══ STATS ═══ -->
   <div id="tab-content-analytics" class="hidden fade">
+    <!-- WEEK RHYTHM — reflection, in Progress where it belongs -->
+    <section class="card hero" id="weekCard"></section>
     <div class="card">
       <h2 data-i18n="st_trail">Trilha de experiências</h2>
       <p class="sub" style="margin:-6px 0 14px" data-i18n="st_trail_sub">Portas de entrada da matemática — o ritmo varia de criança para criança, e isto não é uma avaliação.</p>
@@ -209,35 +202,11 @@
   </main>
 </div>
 
-<!-- BOTTOM NAVIGATION -->
-<nav class="nav" data-i18n-aria="al_nav" aria-label="Navegação principal">
-  <button id="tab-plan" class="on" onclick="showTab('plan')">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z"/><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg>
-    <span data-i18n="tab_plan">Plano</span>
-  </button>
-  <button id="tab-log" onclick="showTab('log')">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>
-    <span data-i18n="tab_log">Registrar</span>
-  </button>
-  <button id="tab-history" onclick="showTab('history')">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
-    <span data-i18n="tab_history">Histórico</span>
-  </button>
-  <button id="tab-analytics" onclick="showTab('analytics')">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19.5v-5M12 19.5v-11M19 19.5v-7"/><path d="M3.5 21h17"/></svg>
-    <span data-i18n="tab_stats">Progresso</span>
-  </button>
-</nav>
 
 <!-- SETTINGS — native dialog: focus trap, Escape and focus restore for free -->
 <dialog id="settingsDialog" aria-labelledby="settingsTitle">
   <div class="modal">
     <h2 id="settingsTitle" style="margin-bottom:4px" data-i18n="set_title">Configurações</h2>
-    <label class="f" data-i18n="set_lang">Idioma</label>
-    <div class="langtoggle">
-      <button id="lang-pt" onclick="setLang('pt')">Português</button>
-      <button id="lang-en" onclick="setLang('en')">English</button>
-    </div>
     <label class="f" for="set-name" data-i18n="set_name">Nome da criança</label>
     <input type="text" id="set-name">
     <label class="f" for="set-birth" data-i18n="set_birth">Mês de nascimento</label>
